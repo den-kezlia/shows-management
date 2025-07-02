@@ -26,8 +26,10 @@ const ticketSchema = new Schema<Ticket>(
     customerName: { type: String, required: true },
     referenceName: { type: String, required: true },
     qrCode: { type: String },
+    status: { type: String, enum: ['paid', 'approved', 'pending'], default: 'paid' },
     isVisited: { type: Boolean, default: false },
     visitedAt: { type: Date },
+    approvedAt: { type: Date },
   },
   {
     timestamps: true,

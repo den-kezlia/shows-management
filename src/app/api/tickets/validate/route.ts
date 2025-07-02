@@ -65,12 +65,12 @@ export async function POST(request: NextRequest) {
 
     const alreadyVisited = ticket.isVisited;
     
-    // Mark ticket as visited if not already visited
-    if (!alreadyVisited) {
-      ticket.isVisited = true;
-      ticket.visitedAt = new Date();
-      await ticket.save();
-    }
+    // Don't automatically mark as visited - wait for manual approval
+    // if (!alreadyVisited) {
+    //   ticket.isVisited = true;
+    //   ticket.visitedAt = new Date();
+    //   await ticket.save();
+    // }
 
     const validationResult: TicketValidation = {
       ticket: ticket.toObject(),
@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
     const response: ApiResponse<TicketValidation> = {
       success: true,
       data: validationResult,
-      message: alreadyVisited ? 'Ticket already used' : 'Ticket validated successfully',
+      message: alreadyVisited ? 'Ticket already approved' : 'Ticket scanned successfully',
     };
     
     return NextResponse.json(response);

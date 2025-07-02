@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test QR Code Generator</title>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 800px; 
+            margin: 0 auto; 
+            padding: 20px; 
+        }
+        .qr-container { 
+            margin: 20px 0; 
+            padding: 20px; 
+            border: 1px solid #ddd; 
+            border-radius: 8px; 
+        }
+        canvas { 
+            display: block; 
+            margin: 10px auto; 
+        }
+        .ticket-info {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎫 Test QR Code Generator</h1>
+    <p>Generate QR codes for testing the scanner functionality</p>
+
+    <div class="qr-container">
+        <h2>✅ Paid Ticket - John Doe (Can be approved)</h2>
+        <div class="ticket-info">
+            Ticket ID: 686583d908d7cc19e50bf885<br>
+            Status: paid<br>
+            Customer: John Doe<br>
+            Performance: Romeo and Juliet<br>
+            Seat: Row A, Seat 1
+        </div>
+        <canvas id="qr1"></canvas>
+    </div>
+
+    <div class="qr-container">
+        <h2>💳 Paid Ticket - Alice Brown (Can be approved)</h2>
+        <div class="ticket-info">
+            Ticket ID: 686583d908d7cc19e50bf88e<br>
+            Status: paid<br>
+            Customer: Alice Brown<br>
+            Performance: The Phantom of the Opera<br>
+            Seat: Row C, Seat 10
+        </div>
+        <canvas id="qr2"></canvas>
+    </div>
+
+    <div class="qr-container">
+        <h2>✅ Already Approved - Jane Smith</h2>
+        <div class="ticket-info">
+            Ticket ID: 686583d908d7cc19e50bf888<br>
+            Status: approved<br>
+            Customer: Jane Smith<br>
+            Performance: Romeo and Juliet<br>
+            Seat: Row A, Seat 2
+        </div>
+        <canvas id="qr3"></canvas>
+    </div>
+
+    <div class="qr-container">
+        <h2>⏳ Pending Ticket - Bob Johnson (Cannot be approved)</h2>
+        <div class="ticket-info">
+            Ticket ID: 686583d908d7cc19e50bf88b<br>
+            Status: pending<br>
+            Customer: Bob Johnson<br>
+            Performance: The Phantom of the Opera<br>
+            Seat: Row B, Seat 5
+        </div>
+        <canvas id="qr4"></canvas>
+    </div>
+
+    <script>
+        // Generate QR codes
+        const tickets = [
+            {
+                ticketId: "686583d908d7cc19e50bf885",
+                performanceId: "romeo-juliet-123",
+                customerName: "John Doe",
+                placeRow: "A",
+                placeNumber: "1",
+                timestamp: Date.now()
+            },
+            {
+                ticketId: "686583d908d7cc19e50bf88e",
+                performanceId: "phantom-opera-456",
+                customerName: "Alice Brown",
+                placeRow: "C",
+                placeNumber: "10",
+                timestamp: Date.now()
+            },
+            {
+                ticketId: "686583d908d7cc19e50bf888",
+                performanceId: "romeo-juliet-123",
+                customerName: "Jane Smith",
+                placeRow: "A",
+                placeNumber: "2",
+                timestamp: Date.now()
+            },
+            {
+                ticketId: "686583d908d7cc19e50bf88b",
+                performanceId: "phantom-opera-456",
+                customerName: "Bob Johnson",
+                placeRow: "B",
+                placeNumber: "5",
+                timestamp: Date.now()
+            }
+        ];
+
+        tickets.forEach((ticket, index) => {
+            const qrData = JSON.stringify(ticket);
+            QRCode.toCanvas(document.getElementById(`qr${index + 1}`), qrData, {
+                width: 200,
+                margin: 2,
+                color: {
+                    dark: '#000000',
+                    light: '#FFFFFF'
+                }
+            });
+        });
+    </script>
+
+    <p><strong>Instructions:</strong></p>
+    <ol>
+        <li>Open <a href="/scanner" target="_blank">/scanner</a> on your phone</li>
+        <li>Click "Start Camera Scanner"</li>
+        <li>Point your phone camera at any QR code above</li>
+        <li>Test the approval workflow!</li>
+    </ol>
+</body>
+</html>

@@ -19,8 +19,10 @@ export interface Ticket {
   customerName: string;
   referenceName: string;
   qrCode?: string;
+  status: 'paid' | 'approved' | 'pending';
   isVisited: boolean;
   visitedAt?: Date;
+  approvedAt?: Date;
   createdAt?: Date;
   updatedAt?: Date;
 }

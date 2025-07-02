@@ -152,8 +152,17 @@ export default function AdminTickets() {
 
   const handleEditTicket = (ticket: Ticket) => {
     setEditingTicket(ticket);
+    // Handle case where performanceId might be populated with Performance object
+    let performanceId: string;
+    if (typeof ticket.performanceId === 'string') {
+      performanceId = ticket.performanceId;
+    } else {
+      // TypeScript workaround for populated performance
+      performanceId = (ticket.performanceId as unknown as Performance)?._id || '';
+    }
+    
     setEditTicket({
-      performanceId: ticket.performanceId,
+      performanceId: performanceId,
       placeRow: ticket.placeRow?.toString() || "",
       placeNumber: ticket.placeNumber?.toString() || "",
       customerPhoneNumber: ticket.customerPhoneNumber,
@@ -218,7 +227,12 @@ export default function AdminTickets() {
     }
   };
 
-  const getPerformanceName = (performanceId: string) => {
+  const getPerformanceName = (performanceId: string | Performance) => {
+    // If performanceId is already populated (object), use its name directly
+    if (typeof performanceId === 'object' && performanceId?.name) {
+      return performanceId.name;
+    }
+    // Otherwise, find it in the performances array
     const performance = performances.find((p) => p._id === performanceId);
     return performance ? performance.name : "Unknown Performance";
   };

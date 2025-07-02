@@ -59,6 +59,7 @@ export default function AdminTickets() {
     referenceName: "",
   });
   const [adminUser, setAdminUser] = useState<{ username: string; email: string } | null>(null);
+  const [sortBy, setSortBy] = useState<'performance' | 'date' | 'customer' | 'status'>('performance');
   const router = useRouter();
 
   useEffect(() => {
@@ -237,6 +238,46 @@ export default function AdminTickets() {
     return performance ? performance.name : "Unknown Performance";
   };
 
+  const getSortedTickets = () => {
+    return [...tickets].sort((a, b) => {
+      switch (sortBy) {
+        case 'performance':
+          const performanceNameA = getPerformanceName(a.performanceId).toLowerCase();
+          const performanceNameB = getPerformanceName(b.performanceId).toLowerCase();
+          return performanceNameA.localeCompare(performanceNameB);
+        case 'date':
+          const dateA = new Date(a.createdAt || 0).getTime();
+          const dateB = new Date(b.createdAt || 0).getTime();
+          return dateB - dateA; // Newest first
+        case 'customer':
+          return a.customerName.toLowerCase().localeCompare(b.customerName.toLowerCase());
+        case 'status':
+          // Pending tickets first, then validated
+          if (a.isVisited === b.isVisited) {
+            return getPerformanceName(a.performanceId).toLowerCase().localeCompare(getPerformanceName(b.performanceId).toLowerCase());
+          }
+          return a.isVisited ? 1 : -1;
+        default:
+          return 0;
+      }
+    });
+  };
+
+  const getGroupedTickets = () => {
+    const sortedTickets = getSortedTickets();
+    const grouped: { [key: string]: Ticket[] } = {};
+    
+    sortedTickets.forEach(ticket => {
+      const performanceName = getPerformanceName(ticket.performanceId);
+      if (!grouped[performanceName]) {
+        grouped[performanceName] = [];
+      }
+      grouped[performanceName].push(ticket);
+    });
+    
+    return grouped;
+  };
+
   const handleLogout = () => {
     localStorage.removeItem("adminToken");
     router.push("/admin");
@@ -375,8 +416,52 @@ export default function AdminTickets() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-4">
-            {tickets.map((ticket) => (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-gray-600">
+                📋 {tickets.length} ticket{tickets.length !== 1 ? 's' : ''} across {Object.keys(getGroupedTickets()).length} performance{Object.keys(getGroupedTickets()).length !== 1 ? 's' : ''}
+              </p>
+              <div className="flex items-center gap-2">
+                <Label htmlFor="sortBy" className="text-sm text-gray-600">Sort within groups:</Label>
+                <Select value={sortBy} onValueChange={(value: 'performance' | 'date' | 'customer' | 'status') => setSortBy(value)}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="performance">🎭 Performance</SelectItem>
+                    <SelectItem value="date">📅 Date Created</SelectItem>
+                    <SelectItem value="customer">👤 Customer</SelectItem>
+                    <SelectItem value="status">✅ Status</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            
+            {Object.entries(getGroupedTickets()).map(([performanceName, performanceTickets]) => {
+              const validatedCount = performanceTickets.filter(t => t.isVisited).length;
+              const pendingCount = performanceTickets.length - validatedCount;
+              
+              return (
+                <div key={performanceName} className="space-y-4">
+                  <div className="sticky top-0 z-10 flex items-center justify-between py-3 px-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200 shadow-sm">
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                        🎭 {performanceName}
+                      </h3>
+                      <p className="text-sm text-gray-600 mt-1">
+                        {performanceTickets.length} ticket{performanceTickets.length !== 1 ? 's' : ''} • 
+                        <span className="text-green-600 font-medium ml-1">✅ {validatedCount} validated</span> • 
+                        <span className="text-yellow-600 font-medium ml-1">⏳ {pendingCount} pending</span>
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-2xl font-bold text-gray-700">{performanceTickets.length}</div>
+                      <div className="text-xs text-gray-500 uppercase tracking-wide">tickets</div>
+                    </div>
+                  </div>
+                  
+                  <div className="grid gap-3 pl-4 border-l-2 border-blue-100">
+                    {performanceTickets.map((ticket) => (
               <Card key={ticket._id} className="hover:shadow-lg transition-shadow">
                 <CardHeader>
                   <div className="flex justify-between items-start">
@@ -460,6 +545,10 @@ export default function AdminTickets() {
                 </CardContent>
               </Card>
             ))}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
 

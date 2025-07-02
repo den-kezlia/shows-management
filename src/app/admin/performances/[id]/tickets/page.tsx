@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { QRCodeDisplay, QRCodePreview } from "@/components/ui/qr-code-display";
 import { Performance, Ticket } from "@/types";
+import { Trash2, Edit } from "lucide-react";
 
 export default function PerformanceTickets() {
   const [performance, setPerformance] = useState<Performance | null>(null);
@@ -21,6 +22,8 @@ export default function PerformanceTickets() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingTicket, setEditingTicket] = useState<Ticket | null>(null);
   const [newTicket, setNewTicket] = useState({
     performanceId: "",
     placeRow: "",
@@ -28,6 +31,14 @@ export default function PerformanceTickets() {
     customerPhoneNumber: "",
     customerName: "",
     referenceName: ""
+  });
+  const [editTicket, setEditTicket] = useState({
+    performanceId: "",
+    placeRow: "",
+    placeNumber: "",
+    customerPhoneNumber: "",
+    customerName: "",
+    referenceName: "",
   });
 
   // Debug state changes
@@ -122,6 +133,83 @@ export default function PerformanceTickets() {
     } catch (error) {
       console.error("Error creating ticket:", error);
       toast.error("Error creating ticket: " + (error as Error).message);
+    }
+  };
+
+  const handleEditTicket = (ticket: Ticket) => {
+    setEditingTicket(ticket);
+    // Handle case where performanceId might be populated with Performance object
+    let performanceId: string;
+    if (typeof ticket.performanceId === 'string') {
+      performanceId = ticket.performanceId;
+    } else {
+      // TypeScript workaround for populated performance
+      performanceId = (ticket.performanceId as unknown as Performance)?._id || '';
+    }
+    
+    setEditTicket({
+      performanceId: performanceId,
+      placeRow: ticket.placeRow?.toString() || "",
+      placeNumber: ticket.placeNumber?.toString() || "",
+      customerPhoneNumber: ticket.customerPhoneNumber,
+      customerName: ticket.customerName,
+      referenceName: ticket.referenceName || "",
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  const handleUpdateTicket = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingTicket) return;
+
+    try {
+      const response = await fetch(`/api/tickets/${editingTicket._id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...editTicket,
+          placeRow: parseInt(editTicket.placeRow) || 1,
+          placeNumber: parseInt(editTicket.placeNumber) || 1,
+        }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setTickets(tickets.map(t => 
+          t._id === editingTicket._id ? data.data : t
+        ));
+        setIsEditDialogOpen(false);
+        setEditingTicket(null);
+        toast.success("Ticket updated successfully!");
+      } else {
+        toast.error("Error updating ticket: " + data.error);
+      }
+    } catch (error) {
+      console.error("Error updating ticket:", error);
+      toast.error("Error updating ticket");
+    }
+  };
+
+  const handleDeleteTicket = async (ticketId: string) => {
+    if (!confirm("Are you sure you want to delete this ticket?")) return;
+
+    try {
+      const response = await fetch(`/api/tickets/${ticketId}`, {
+        method: "DELETE",
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setTickets(tickets.filter(t => t._id !== ticketId));
+        toast.success("Ticket deleted successfully!");
+      } else {
+        toast.error("Error deleting ticket: " + data.error);
+      }
+    } catch (error) {
+      console.error("Error deleting ticket:", error);
+      toast.error("Error deleting ticket");
     }
   };
 
@@ -223,7 +311,7 @@ export default function PerformanceTickets() {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="placeNumber">Seat Number</Label>
+                      <Label htmlFor="placeNumber">Seat</Label>
                       <Input
                         id="placeNumber"
                         value={newTicket.placeNumber}
@@ -253,13 +341,12 @@ export default function PerformanceTickets() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="referenceName">Reference Name</Label>
+                    <Label htmlFor="referenceName">Reference Name (Optional)</Label>
                     <Input
                       id="referenceName"
                       value={newTicket.referenceName}
                       onChange={(e) => setNewTicket({...newTicket, referenceName: e.target.value})}
-                      placeholder="Booking reference"
-                      required
+                      placeholder="Enter reference name"
                     />
                   </div>
                   <div className="flex justify-end gap-2">
@@ -385,45 +472,71 @@ export default function PerformanceTickets() {
             </div>
             <Separator />
             {tickets.map((ticket) => (
-              <Card key={ticket._id} className="hover:shadow-md transition-shadow">
-                <CardContent className="pt-6">
-                  <div className="flex justify-between items-start mb-4">
+              <Card key={ticket._id} className="hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <div className="flex justify-between items-start">
                     <div>
-                      <h3 className="font-semibold text-lg">{ticket.customerName}</h3>
-                      <p className="text-muted-foreground">{ticket.customerPhoneNumber}</p>
+                      <CardTitle className="text-lg">
+                        {performance?.name}
+                      </CardTitle>
+                      <CardDescription>
+                        {ticket.customerName} - {ticket.customerPhoneNumber}
+                      </CardDescription>
                     </div>
                     <div className="flex items-center gap-2">
                       {ticket.isVisited ? (
-                        <Badge className="bg-green-500">
+                        <Badge variant="secondary" className="bg-green-100 text-green-800">
                           ✅ Validated
                         </Badge>
                       ) : (
-                        <Badge variant="outline">
+                        <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
                           ⏳ Pending
                         </Badge>
                       )}
+                      <div className="flex gap-1 ml-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEditTicket(ticket)}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => ticket._id && handleDeleteTicket(ticket._id)}
+                          className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
+                </CardHeader>
+                <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
-                    <div className="space-y-1">
-                      <p className="font-medium text-muted-foreground">Seat</p>
-                      <p>Row {ticket.placeRow}, Seat {ticket.placeNumber}</p>
+                    <div>
+                      <span className="font-medium">💺 Seat:</span>
+                      <p className="text-gray-600">
+                        Row {ticket.placeRow}, Seat {ticket.placeNumber}
+                      </p>
                     </div>
-                    <div className="space-y-1">
-                      <p className="font-medium text-muted-foreground">Reference</p>
-                      <p>{ticket.referenceName}</p>
+                    <div>
+                      <span className="font-medium">📧 Reference:</span>
+                      <p className="text-gray-600">{ticket.referenceName}</p>
                     </div>
-                    <div className="space-y-1">
-                      <p className="font-medium text-muted-foreground">Created</p>
-                      <p>
+                    <div>
+                      <span className="font-medium">📅 Created:</span>
+                      <p className="text-gray-600">
                         {ticket.createdAt ? new Date(ticket.createdAt).toLocaleDateString() : 'N/A'}
                       </p>
                     </div>
-                    <div className="space-y-1">
-                      <p className="font-medium text-muted-foreground">QR Code</p>
-                      <div className="flex items-center gap-2">
+                    <div>
+                      <span className="font-medium">🔗 QR Code:</span>
+                      <div className="flex items-center gap-2 mt-1">
                         <QRCodePreview qrCode={ticket.qrCode} />
-                        <QRCodeDisplay 
+                        <QRCodeDisplay
                           qrCode={ticket.qrCode}
                           ticketId={ticket._id}
                           customerName={ticket.customerName}
@@ -433,8 +546,8 @@ export default function PerformanceTickets() {
                     </div>
                   </div>
                   {ticket.isVisited && ticket.visitedAt && (
-                    <div className="mt-4 p-3 bg-green-50 dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-800">
-                      <p className="text-sm text-green-800 dark:text-green-200">
+                    <div className="mt-4 p-3 bg-green-50 rounded-lg">
+                      <p className="text-sm text-green-800">
                         <strong>Validated:</strong> {new Date(ticket.visitedAt).toLocaleString()}
                       </p>
                     </div>
@@ -444,6 +557,88 @@ export default function PerformanceTickets() {
             ))}
           </div>
         )}
+
+        {/* Edit Ticket Dialog */}
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Ticket</DialogTitle>
+              <DialogDescription>
+                Update ticket information.
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleUpdateTicket} className="space-y-4">
+              <div>
+                <Label htmlFor="editPerformanceId">Performance</Label>
+                <Select 
+                  value={editTicket.performanceId} 
+                  onValueChange={(value) => setEditTicket({...editTicket, performanceId: value})}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a performance" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {allPerformances.map((performance) => (
+                      <SelectItem key={performance._id} value={performance._id || ""}>
+                        {performance.name} - {new Date(performance.date).toLocaleDateString()}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="editPlaceRow">Row</Label>
+                  <Input
+                    id="editPlaceRow"
+                    value={editTicket.placeRow}
+                    onChange={(e) => setEditTicket({...editTicket, placeRow: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="editPlaceNumber">Seat</Label>
+                  <Input
+                    id="editPlaceNumber"
+                    value={editTicket.placeNumber}
+                    onChange={(e) => setEditTicket({...editTicket, placeNumber: e.target.value})}
+                  />
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="editCustomerName">Customer Name</Label>
+                <Input
+                  id="editCustomerName"
+                  value={editTicket.customerName}
+                  onChange={(e) => setEditTicket({...editTicket, customerName: e.target.value})}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="editCustomerPhoneNumber">Phone Number</Label>
+                <Input
+                  id="editCustomerPhoneNumber"
+                  value={editTicket.customerPhoneNumber}
+                  onChange={(e) => setEditTicket({...editTicket, customerPhoneNumber: e.target.value})}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="editReferenceName">Reference Name (Optional)</Label>
+                <Input
+                  id="editReferenceName"
+                  value={editTicket.referenceName}
+                  onChange={(e) => setEditTicket({...editTicket, referenceName: e.target.value})}
+                />
+              </div>
+              <div className="flex justify-end space-x-2">
+                <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit">Update Ticket</Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
       </main>
     </div>
   );

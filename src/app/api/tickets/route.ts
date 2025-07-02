@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     
     // Validate required fields
     const { performanceId, placeRow, placeNumber, customerPhoneNumber, customerName, referenceName } = body;
-    if (!performanceId || !placeRow || !placeNumber || !customerPhoneNumber || !customerName || !referenceName) {
+    if (!performanceId || !placeRow || !placeNumber || !customerPhoneNumber || !customerName) {
       const errorResponse: ApiResponse = {
         success: false,
         error: 'Missing required fields',

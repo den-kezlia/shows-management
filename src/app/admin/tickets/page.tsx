@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,6 +14,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -28,19 +28,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {Textarea} from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { LoadingScreen } from "@/components/ui/spinner";
 import { QRCodeDisplay, QRCodePreview } from "@/components/ui/qr-code-display";
 import { AdminNav } from "@/components/ui/navigation";
 import { Performance, Ticket } from "@/types";
-import { Trash2, Edit, QrCode, Send } from "lucide-react";
+import { Trash2, Edit } from "lucide-react";
 
 export default function AdminTickets() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [performances, setPerformances] = useState<Performance[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingTicket, setEditingTicket] = useState<Ticket | null>(null);
   const [newTicket, setNewTicket] = useState({
     performanceId: "",
     placeRow: "",
@@ -49,7 +50,15 @@ export default function AdminTickets() {
     customerName: "",
     referenceName: "",
   });
-  const [adminUser, setAdminUser] = useState<any>(null);
+  const [editTicket, setEditTicket] = useState({
+    performanceId: "",
+    placeRow: "",
+    placeNumber: "",
+    customerPhoneNumber: "",
+    customerName: "",
+    referenceName: "",
+  });
+  const [adminUser, setAdminUser] = useState<{ username: string; email: string } | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -71,7 +80,7 @@ export default function AdminTickets() {
           throw new Error("Token verification failed");
         }
         const data = await res.json();
-        setAdminUser(data.user);
+        setAdminUser(data.data.admin);
       })
       .catch(() => {
         localStorage.removeItem("adminToken");
@@ -141,6 +150,74 @@ export default function AdminTickets() {
     }
   };
 
+  const handleEditTicket = (ticket: Ticket) => {
+    setEditingTicket(ticket);
+    setEditTicket({
+      performanceId: ticket.performanceId,
+      placeRow: ticket.placeRow?.toString() || "",
+      placeNumber: ticket.placeNumber?.toString() || "",
+      customerPhoneNumber: ticket.customerPhoneNumber,
+      customerName: ticket.customerName,
+      referenceName: ticket.referenceName || "",
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  const handleUpdateTicket = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingTicket) return;
+
+    try {
+      const response = await fetch(`/api/tickets/${editingTicket._id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...editTicket,
+          placeRow: parseInt(editTicket.placeRow) || 1,
+          placeNumber: parseInt(editTicket.placeNumber) || 1,
+        }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setTickets(tickets.map(t => 
+          t._id === editingTicket._id ? data.data : t
+        ));
+        setIsEditDialogOpen(false);
+        setEditingTicket(null);
+        toast.success("Ticket updated successfully!");
+      } else {
+        toast.error("Error updating ticket: " + data.error);
+      }
+    } catch (error) {
+      console.error("Error updating ticket:", error);
+      toast.error("Error updating ticket");
+    }
+  };
+
+  const handleDeleteTicket = async (ticketId: string) => {
+    if (!confirm("Are you sure you want to delete this ticket?")) return;
+
+    try {
+      const response = await fetch(`/api/tickets/${ticketId}`, {
+        method: "DELETE",
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setTickets(tickets.filter(t => t._id !== ticketId));
+        toast.success("Ticket deleted successfully!");
+      } else {
+        toast.error("Error deleting ticket: " + data.error);
+      }
+    } catch (error) {
+      console.error("Error deleting ticket:", error);
+      toast.error("Error deleting ticket");
+    }
+  };
+
   const getPerformanceName = (performanceId: string) => {
     const performance = performances.find((p) => p._id === performanceId);
     return performance ? performance.name : "Unknown Performance";
@@ -157,7 +234,7 @@ export default function AdminTickets() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <AdminNav user={adminUser} onLogout={handleLogout} />
+      <AdminNav adminUser={adminUser} onLogout={handleLogout} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex justify-between items-center mb-8">
@@ -190,9 +267,8 @@ export default function AdminTickets() {
                     </SelectTrigger>
                     <SelectContent>
                       {performances.map((performance) => (
-                        <SelectItem key={performance._id} value={performance._id}>
-                          {performance.title} - {performance.date} at{" "}
-                          {performance.time}
+                        <SelectItem key={performance._id} value={performance._id || ""}>
+                          {performance.name} - {new Date(performance.date).toLocaleDateString()}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -213,57 +289,52 @@ export default function AdminTickets() {
                 </div>
 
                 <div>
-                  <Label htmlFor="customerEmail">Customer Email</Label>
+                  <Label htmlFor="customerPhoneNumber">Phone Number</Label>
                   <Input
-                    id="customerEmail"
-                    type="email"
-                    value={newTicket.customerEmail}
+                    id="customerPhoneNumber"
+                    value={newTicket.customerPhoneNumber}
                     onChange={(e) =>
-                      setNewTicket({ ...newTicket, customerEmail: e.target.value })
+                      setNewTicket({ ...newTicket, customerPhoneNumber: e.target.value })
                     }
-                    placeholder="Enter customer email"
+                    placeholder="Enter customer phone number"
                     required
                   />
                 </div>
 
-                <div>
-                  <Label htmlFor="seatNumber">Seat Number</Label>
-                  <Input
-                    id="seatNumber"
-                    value={newTicket.seatNumber}
-                    onChange={(e) =>
-                      setNewTicket({ ...newTicket, seatNumber: e.target.value })
-                    }
-                    placeholder="Enter seat number"
-                    required
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="placeRow">Row</Label>
+                    <Input
+                      id="placeRow"
+                      value={newTicket.placeRow}
+                      onChange={(e) =>
+                        setNewTicket({ ...newTicket, placeRow: e.target.value })
+                      }
+                      placeholder="Enter row"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="placeNumber">Seat Number</Label>
+                    <Input
+                      id="placeNumber"
+                      value={newTicket.placeNumber}
+                      onChange={(e) =>
+                        setNewTicket({ ...newTicket, placeNumber: e.target.value })
+                      }
+                      placeholder="Enter seat number"
+                    />
+                  </div>
                 </div>
 
                 <div>
-                  <Label htmlFor="price">Price ($)</Label>
+                  <Label htmlFor="referenceName">Reference Name (Optional)</Label>
                   <Input
-                    id="price"
-                    type="number"
-                    step="0.01"
-                    value={newTicket.price}
+                    id="referenceName"
+                    value={newTicket.referenceName}
                     onChange={(e) =>
-                      setNewTicket({ ...newTicket, price: e.target.value })
+                      setNewTicket({ ...newTicket, referenceName: e.target.value })
                     }
-                    placeholder="Enter ticket price"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="notes">Notes (Optional)</Label>
-                  <Textarea
-                    id="notes"
-                    value={newTicket.notes}
-                    onChange={(e) =>
-                      setNewTicket({ ...newTicket, notes: e.target.value })
-                    }
-                    placeholder="Additional notes"
-                    rows={3}
+                    placeholder="Enter reference name"
                   />
                 </div>
 
@@ -313,6 +384,24 @@ export default function AdminTickets() {
                           ⏳ Pending
                         </Badge>
                       )}
+                      <div className="flex gap-1 ml-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEditTicket(ticket)}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => ticket._id && handleDeleteTicket(ticket._id)}
+                          className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </CardHeader>
@@ -359,6 +448,88 @@ export default function AdminTickets() {
             ))}
           </div>
         )}
+
+        {/* Edit Ticket Dialog */}
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Ticket</DialogTitle>
+              <DialogDescription>
+                Update ticket information.
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleUpdateTicket} className="space-y-4">
+              <div>
+                <Label htmlFor="editPerformanceId">Performance</Label>
+                <Select 
+                  value={editTicket.performanceId} 
+                  onValueChange={(value) => setEditTicket({...editTicket, performanceId: value})}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a performance" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {performances.map((performance) => (
+                      <SelectItem key={performance._id} value={performance._id || ""}>
+                        {performance.name} - {new Date(performance.date).toLocaleDateString()}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="editPlaceRow">Row</Label>
+                  <Input
+                    id="editPlaceRow"
+                    value={editTicket.placeRow}
+                    onChange={(e) => setEditTicket({...editTicket, placeRow: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="editPlaceNumber">Seat</Label>
+                  <Input
+                    id="editPlaceNumber"
+                    value={editTicket.placeNumber}
+                    onChange={(e) => setEditTicket({...editTicket, placeNumber: e.target.value})}
+                  />
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="editCustomerName">Customer Name</Label>
+                <Input
+                  id="editCustomerName"
+                  value={editTicket.customerName}
+                  onChange={(e) => setEditTicket({...editTicket, customerName: e.target.value})}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="editCustomerPhoneNumber">Phone Number</Label>
+                <Input
+                  id="editCustomerPhoneNumber"
+                  value={editTicket.customerPhoneNumber}
+                  onChange={(e) => setEditTicket({...editTicket, customerPhoneNumber: e.target.value})}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="editReferenceName">Reference Name (Optional)</Label>
+                <Input
+                  id="editReferenceName"
+                  value={editTicket.referenceName}
+                  onChange={(e) => setEditTicket({...editTicket, referenceName: e.target.value})}
+                />
+              </div>
+              <div className="flex justify-end space-x-2">
+                <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit">Update Ticket</Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

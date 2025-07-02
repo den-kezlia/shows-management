@@ -1,103 +1,108 @@
-import Image from "next/image";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { PublicNav } from "@/components/ui/navigation";
 
 export default function Home() {
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      <PublicNav />
+      <div className="container mx-auto px-4 py-16">
+        <div className="text-center mb-16">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            🎭 Tickets Agent v2
+          </h1>
+          <p className="text-xl text-gray-600 mb-8">
+            Theater Ticket Management System
+          </p>
+          <p className="text-gray-500 max-w-2xl mx-auto">
+            A comprehensive solution for managing theater performances, creating tickets,
+            and validating entries with QR codes. Send tickets via email, Telegram, or Viber.
+          </p>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                🎪 Admin Panel
+              </CardTitle>
+              <CardDescription>
+                Manage performances, create tickets, and oversee the entire ticketing system
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2 mb-4">
+                <p className="text-sm text-gray-600">• Create and manage performances</p>
+                <p className="text-sm text-gray-600">• Generate tickets with QR codes</p>
+                <p className="text-sm text-gray-600">• Send tickets via multiple channels</p>
+                <p className="text-sm text-gray-600">• Track ticket validation</p>
+              </div>
+              <Link href="/admin">
+                <Button className="w-full">
+                  Access Admin Panel
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                📱 QR Scanner
+              </CardTitle>
+              <CardDescription>
+                Validate tickets by scanning QR codes at the venue entrance
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2 mb-4">
+                <p className="text-sm text-gray-600">• Scan ticket QR codes</p>
+                <p className="text-sm text-gray-600">• Validate ticket authenticity</p>
+                <p className="text-sm text-gray-600">• Prevent duplicate entries</p>
+                <p className="text-sm text-gray-600">• Real-time validation</p>
+              </div>
+              <Link href="/scanner">
+                <Button variant="outline" className="w-full">
+                  Open QR Scanner
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="mt-16 text-center">
+          <div className="bg-white rounded-lg shadow-sm p-6 max-w-2xl mx-auto">
+            <h2 className="text-2xl font-semibold mb-4">Features</h2>
+            <div className="grid sm:grid-cols-2 gap-4 text-left">
+              <div>
+                <h3 className="font-medium text-gray-900 mb-2">🎯 Performance Management</h3>
+                <p className="text-sm text-gray-600">
+                  Create performances with name, description, photo, and date/time
+                </p>
+              </div>
+              <div>
+                <h3 className="font-medium text-gray-900 mb-2">🎫 Ticket Generation</h3>
+                <p className="text-sm text-gray-600">
+                  Generate tickets with seat details, customer info, and QR codes
+                </p>
+              </div>
+              <div>
+                <h3 className="font-medium text-gray-900 mb-2">📧 Multi-Channel Delivery</h3>
+                <p className="text-sm text-gray-600">
+                  Send tickets via Email, Telegram, or Viber messaging
+                </p>
+              </div>
+              <div>
+                <h3 className="font-medium text-gray-900 mb-2">✅ Validation System</h3>
+                <p className="text-sm text-gray-600">
+                  QR code scanning with duplicate prevention and entry tracking
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

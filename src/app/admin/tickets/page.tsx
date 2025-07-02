@@ -1,19 +1,40 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {Textarea} from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { LoadingScreen } from "@/components/ui/spinner";
 import { QRCodeDisplay, QRCodePreview } from "@/components/ui/qr-code-display";
+import { AdminNav } from "@/components/ui/navigation";
 import { Performance, Ticket } from "@/types";
+import { Trash2, Edit, QrCode, Send } from "lucide-react";
 
 export default function AdminTickets() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
@@ -26,8 +47,9 @@ export default function AdminTickets() {
     placeNumber: "",
     customerPhoneNumber: "",
     customerName: "",
-    referenceName: ""
+    referenceName: "",
   });
+  const [adminUser, setAdminUser] = useState<any>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -37,6 +59,25 @@ export default function AdminTickets() {
       router.push("/admin");
       return;
     }
+
+    // Verify token and get admin user
+    fetch("/api/auth/verify", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then(async (res) => {
+        if (!res.ok) {
+          throw new Error("Token verification failed");
+        }
+        const data = await res.json();
+        setAdminUser(data.user);
+      })
+      .catch(() => {
+        localStorage.removeItem("adminToken");
+        router.push("/admin");
+      });
+
     loadData();
   }, [router]);
 
@@ -44,7 +85,7 @@ export default function AdminTickets() {
     try {
       const [ticketsRes, performancesRes] = await Promise.all([
         fetch("/api/tickets"),
-        fetch("/api/performances")
+        fetch("/api/performances"),
       ]);
 
       const ticketsData = await ticketsRes.json();
@@ -87,7 +128,7 @@ export default function AdminTickets() {
           placeNumber: "",
           customerPhoneNumber: "",
           customerName: "",
-          referenceName: ""
+          referenceName: "",
         });
         setIsCreateDialogOpen(false);
         toast.success("Ticket created successfully!");
@@ -101,8 +142,13 @@ export default function AdminTickets() {
   };
 
   const getPerformanceName = (performanceId: string) => {
-    const performance = performances.find(p => p._id === performanceId);
+    const performance = performances.find((p) => p._id === performanceId);
     return performance ? performance.name : "Unknown Performance";
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("adminToken");
+    router.push("/admin");
   };
 
   if (isLoading) {
@@ -111,119 +157,124 @@ export default function AdminTickets() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-4">
-              <Link href="/admin/dashboard">
-                <Button variant="outline" size="sm">
-                  ← Back to Dashboard
-                </Button>
-              </Link>
-              <h1 className="text-xl font-semibold text-gray-900">
-                🎫 Manage Tickets
-              </h1>
-            </div>
-            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-              <DialogTrigger asChild>
-                <Button>
+      <AdminNav user={adminUser} onLogout={handleLogout} />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-2xl font-bold text-gray-900">
+            🎫 Manage Tickets
+          </h1>
+
+          <Dialog
+            open={isCreateDialogOpen}
+            onOpenChange={setIsCreateDialogOpen}
+          >
+            <DialogTrigger asChild>
+              <Button>Create New Ticket</Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Create New Ticket</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleCreateTicket} className="space-y-4">
+                <div>
+                  <Label htmlFor="performance">Performance</Label>
+                  <Select
+                    value={newTicket.performanceId}
+                    onValueChange={(value) =>
+                      setNewTicket({ ...newTicket, performanceId: value })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select performance" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {performances.map((performance) => (
+                        <SelectItem key={performance._id} value={performance._id}>
+                          {performance.title} - {performance.date} at{" "}
+                          {performance.time}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="customerName">Customer Name</Label>
+                  <Input
+                    id="customerName"
+                    value={newTicket.customerName}
+                    onChange={(e) =>
+                      setNewTicket({ ...newTicket, customerName: e.target.value })
+                    }
+                    placeholder="Enter customer name"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="customerEmail">Customer Email</Label>
+                  <Input
+                    id="customerEmail"
+                    type="email"
+                    value={newTicket.customerEmail}
+                    onChange={(e) =>
+                      setNewTicket({ ...newTicket, customerEmail: e.target.value })
+                    }
+                    placeholder="Enter customer email"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="seatNumber">Seat Number</Label>
+                  <Input
+                    id="seatNumber"
+                    value={newTicket.seatNumber}
+                    onChange={(e) =>
+                      setNewTicket({ ...newTicket, seatNumber: e.target.value })
+                    }
+                    placeholder="Enter seat number"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="price">Price ($)</Label>
+                  <Input
+                    id="price"
+                    type="number"
+                    step="0.01"
+                    value={newTicket.price}
+                    onChange={(e) =>
+                      setNewTicket({ ...newTicket, price: e.target.value })
+                    }
+                    placeholder="Enter ticket price"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="notes">Notes (Optional)</Label>
+                  <Textarea
+                    id="notes"
+                    value={newTicket.notes}
+                    onChange={(e) =>
+                      setNewTicket({ ...newTicket, notes: e.target.value })
+                    }
+                    placeholder="Additional notes"
+                    rows={3}
+                  />
+                </div>
+
+                <Button type="submit" className="w-full">
                   Create Ticket
                 </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Create New Ticket</DialogTitle>
-                  <DialogDescription>
-                    Create a new ticket for a customer.
-                  </DialogDescription>
-                </DialogHeader>
-                <form onSubmit={handleCreateTicket} className="space-y-4">
-                  <div>
-                    <Label htmlFor="performanceId">Performance</Label>
-                    <Select value={newTicket.performanceId} onValueChange={(value) => setNewTicket({...newTicket, performanceId: value})}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a performance" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {performances.map((performance) => (
-                          <SelectItem key={performance._id} value={performance._id || ""}>
-                            {performance.name} - {new Date(performance.date).toLocaleDateString()}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="placeRow">Row</Label>
-                      <Input
-                        id="placeRow"
-                        value={newTicket.placeRow}
-                        onChange={(e) => setNewTicket({...newTicket, placeRow: e.target.value})}
-                        placeholder="e.g., A or 1"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="placeNumber">Seat Number</Label>
-                      <Input
-                        id="placeNumber"
-                        value={newTicket.placeNumber}
-                        onChange={(e) => setNewTicket({...newTicket, placeNumber: e.target.value})}
-                        placeholder="e.g., 15"
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <Label htmlFor="customerName">Customer Name</Label>
-                    <Input
-                      id="customerName"
-                      value={newTicket.customerName}
-                      onChange={(e) => setNewTicket({...newTicket, customerName: e.target.value})}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="customerPhoneNumber">Phone Number</Label>
-                    <Input
-                      id="customerPhoneNumber"
-                      value={newTicket.customerPhoneNumber}
-                      onChange={(e) => setNewTicket({...newTicket, customerPhoneNumber: e.target.value})}
-                      placeholder="+1234567890"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="referenceName">Reference Name</Label>
-                    <Input
-                      id="referenceName"
-                      value={newTicket.referenceName}
-                      onChange={(e) => setNewTicket({...newTicket, referenceName: e.target.value})}
-                      placeholder="Booking reference or confirmation code"
-                      required
-                    />
-                  </div>
-                  <div className="flex justify-end gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setIsCreateDialogOpen(false)}
-                    >
-                      Cancel
-                    </Button>
-                    <Button type="submit">
-                      Create Ticket
-                    </Button>
-                  </div>
-                </form>
-              </DialogContent>
-            </Dialog>
-          </div>
+              </form>
+            </DialogContent>
+          </Dialog>
         </div>
-      </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {tickets.length === 0 ? (
           <Card>
             <CardHeader>
@@ -287,7 +338,7 @@ export default function AdminTickets() {
                       <span className="font-medium">🔗 QR Code:</span>
                       <div className="flex items-center gap-2 mt-1">
                         <QRCodePreview qrCode={ticket.qrCode} />
-                        <QRCodeDisplay 
+                        <QRCodeDisplay
                           qrCode={ticket.qrCode}
                           ticketId={ticket._id}
                           customerName={ticket.customerName}
@@ -308,7 +359,7 @@ export default function AdminTickets() {
             ))}
           </div>
         )}
-      </main>
+      </div>
     </div>
   );
 }

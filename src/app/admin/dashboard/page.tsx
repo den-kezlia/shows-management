@@ -28,8 +28,30 @@ export default function AdminDashboard() {
       return;
     }
 
-    setAdminUser(JSON.parse(user));
-    loadDashboardData();
+    // Verify token is still valid
+    fetch("/api/auth/verify", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((response) => response.json())
+      .then((result) => {
+        if (result.success) {
+          setAdminUser(JSON.parse(user));
+          loadDashboardData();
+        } else {
+          // Token is invalid, redirect to login
+          localStorage.removeItem("adminToken");
+          localStorage.removeItem("adminUser");
+          router.push("/admin");
+        }
+      })
+      .catch(() => {
+        // Error verifying token, redirect to login
+        localStorage.removeItem("adminToken");
+        localStorage.removeItem("adminUser");
+        router.push("/admin");
+      });
   }, [router]);
 
   const loadDashboardData = async () => {

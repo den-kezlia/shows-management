@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,12 +14,48 @@ export default function AdminLoginPage() {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const [successMessage, setSuccessMessage] = useState("");
   const router = useRouter();
+
+  // Check if user is already logged in
+  useEffect(() => {
+    const token = localStorage.getItem("adminToken");
+    if (token) {
+      // Verify token is still valid
+      fetch("/api/auth/verify", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+        .then((response) => response.json())
+        .then((result) => {
+          if (result.success) {
+            // Token is valid, redirect to dashboard
+            router.push("/admin/dashboard");
+          } else {
+            // Token is invalid, remove it
+            localStorage.removeItem("adminToken");
+            localStorage.removeItem("adminUser");
+            setIsCheckingAuth(false);
+          }
+        })
+        .catch(() => {
+          // Error verifying token, remove it
+          localStorage.removeItem("adminToken");
+          localStorage.removeItem("adminUser");
+          setIsCheckingAuth(false);
+        });
+    } else {
+      setIsCheckingAuth(false);
+    }
+  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
+    setSuccessMessage("");
 
     try {
       const response = await fetch("/api/auth/login", {
@@ -37,8 +73,13 @@ export default function AdminLoginPage() {
         localStorage.setItem("adminToken", result.data.token);
         localStorage.setItem("adminUser", JSON.stringify(result.data.admin));
         
-        // Redirect to admin dashboard
-        router.push("/admin/dashboard");
+        // Show success message briefly before redirecting
+        setSuccessMessage("Login successful! Redirecting to dashboard...");
+        
+        // Redirect to admin dashboard after a short delay
+        setTimeout(() => {
+          router.push("/admin/dashboard");
+        }, 1000);
       } else {
         setError(result.error || "Login failed");
       }
@@ -56,6 +97,22 @@ export default function AdminLoginPage() {
       [e.target.name]: e.target.value,
     });
   };
+
+  // Show loading state while checking authentication
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
+              <p className="mt-2 text-gray-600">Checking authentication...</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
@@ -98,12 +155,16 @@ export default function AdminLoginPage() {
               <div className="text-red-500 text-sm text-center">{error}</div>
             )}
 
+            {successMessage && (
+              <div className="text-green-500 text-sm text-center font-medium">{successMessage}</div>
+            )}
+
             <Button
               type="submit"
               className="w-full"
-              disabled={isLoading}
+              disabled={isLoading || !!successMessage}
             >
-              {isLoading ? "Signing in..." : "Sign In"}
+              {successMessage ? "Redirecting..." : isLoading ? "Signing in..." : "Sign In"}
             </Button>
           </form>
 

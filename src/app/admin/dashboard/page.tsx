@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { LoadingScreen } from "@/components/ui/spinner";
 import { AdminNav } from "@/components/ui/navigation";
 import { Performance, Ticket } from "@/types";
+import { formatDateUTC, formatTimeUTC } from "@/lib/utils";
 
 export default function AdminDashboard() {
   const [performances, setPerformances] = useState<Performance[]>([]);
@@ -291,13 +292,10 @@ export default function AdminDashboard() {
                         </TableCell>
                         <TableCell>
                           <div className="text-sm">
-                            {new Date(performance.date).toLocaleDateString()}
+                            {formatDateUTC(performance.date)}
                           </div>
                           <div className="text-xs text-gray-500">
-                            {new Date(performance.date).toLocaleTimeString([], { 
-                              hour: '2-digit', 
-                              minute: '2-digit' 
-                            })}
+                            {formatTimeUTC(performance.date)}
                           </div>
                         </TableCell>
                         <TableCell>

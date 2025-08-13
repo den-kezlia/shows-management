@@ -30,8 +30,8 @@ export default function PerformanceTickets() {
     placeNumber: "",
     customerPhoneNumber: "",
     customerName: "",
-  referenceName: "",
-  status: 'pending'
+    referenceName: "",
+    status: 'pending'
   });
   const [editTicket, setEditTicket] = useState({
     performanceId: "",
@@ -39,9 +39,11 @@ export default function PerformanceTickets() {
     placeNumber: "",
     customerPhoneNumber: "",
     customerName: "",
-  referenceName: "",
-  status: 'paid'
+    referenceName: "",
+    status: 'paid'
   });
+  const [ticketToDelete, setTicketToDelete] = useState<Ticket | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   // Debug state changes
   useEffect(() => {
@@ -103,9 +105,7 @@ export default function PerformanceTickets() {
     try {
       const response = await fetch("/api/tickets", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...newTicket,
           placeRow: newTicket.placeRow || 1,
@@ -157,8 +157,8 @@ export default function PerformanceTickets() {
       placeNumber: ticket.placeNumber?.toString() || "",
       customerPhoneNumber: ticket.customerPhoneNumber,
       customerName: ticket.customerName,
-  referenceName: ticket.referenceName || "",
-  status: ticket.status || 'paid'
+      referenceName: ticket.referenceName || "",
+      status: ticket.status || 'paid'
     });
     setIsEditDialogOpen(true);
   };
@@ -166,13 +166,10 @@ export default function PerformanceTickets() {
   const handleUpdateTicket = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingTicket) return;
-
     try {
       const response = await fetch(`/api/tickets/${editingTicket._id}`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...editTicket,
           placeRow: parseInt(editTicket.placeRow) || 1,
@@ -180,12 +177,9 @@ export default function PerformanceTickets() {
           status: editTicket.status,
         }),
       });
-
       const data = await response.json();
       if (data.success) {
-        setTickets(tickets.map(t => 
-          t._id === editingTicket._id ? data.data : t
-        ));
+        setTickets(tickets.map(t => t._id === editingTicket._id ? data.data : t));
         setIsEditDialogOpen(false);
         setEditingTicket(null);
         toast.success("Ticket updated successfully!");
@@ -198,14 +192,27 @@ export default function PerformanceTickets() {
     }
   };
 
+  // Delete confirmation handlers (kept outside of handleUpdateTicket for proper scope)
+  const openDeleteDialog = (ticket: Ticket) => {
+    setTicketToDelete(ticket);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!ticketToDelete?._id) return;
+    await handleDeleteTicket(ticketToDelete._id);
+    setIsDeleteDialogOpen(false);
+    setTicketToDelete(null);
+  };
+
+  const cancelDelete = () => {
+    setIsDeleteDialogOpen(false);
+    setTicketToDelete(null);
+  };
+
   const handleDeleteTicket = async (ticketId: string) => {
-    if (!confirm("Are you sure you want to delete this ticket?")) return;
-
     try {
-      const response = await fetch(`/api/tickets/${ticketId}`, {
-        method: "DELETE",
-      });
-
+      const response = await fetch(`/api/tickets/${ticketId}`, { method: "DELETE" });
       const data = await response.json();
       if (data.success) {
         setTickets(tickets.filter(t => t._id !== ticketId));
@@ -527,7 +534,7 @@ export default function PerformanceTickets() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => ticket._id && handleDeleteTicket(ticket._id)}
+                          onClick={() => openDeleteDialog(ticket)}
                           className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -675,6 +682,59 @@ export default function PerformanceTickets() {
                 <Button type="submit">Update Ticket</Button>
               </div>
             </form>
+          </DialogContent>
+        </Dialog>
+        {/* Delete Confirmation Dialog */}
+        <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <DialogContent className="sm:max-w-sm">
+            <DialogHeader>
+              <DialogTitle>Delete Ticket</DialogTitle>
+              <DialogDescription>
+                Review the ticket details below. This action cannot be undone.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-5">
+              {ticketToDelete && (
+                <div className="rounded-md border p-4 text-sm">
+                  <div className="mb-3 font-medium text-red-600 flex items-center gap-2">
+                    ⚠️ Confirm permanent deletion
+                  </div>
+                  <div className="grid gap-1.5">
+                    <div>
+                      <span className="font-medium">Seat:</span> Row {ticketToDelete.placeRow}, Seat {ticketToDelete.placeNumber}
+                    </div>
+                    <div>
+                      <span className="font-medium">Customer:</span> {ticketToDelete.customerName}
+                    </div>
+                    <div>
+                      <span className="font-medium">Phone:</span> {ticketToDelete.customerPhoneNumber}
+                    </div>
+                    {ticketToDelete.referenceName && (
+                      <div>
+                        <span className="font-medium">Reference:</span> {ticketToDelete.referenceName}
+                      </div>
+                    )}
+                    <div>
+                      <span className="font-medium">Status:</span> {ticketToDelete.status === 'pending' && '⏳ Pending'}{ticketToDelete.status === 'paid' && '💳 Paid'}{ticketToDelete.status === 'approved' && '✅ Approved'}
+                    </div>
+                    {ticketToDelete.createdAt && (
+                      <div>
+                        <span className="font-medium">Created:</span> {new Date(ticketToDelete.createdAt).toLocaleString()}
+                      </div>
+                    )}
+                    {ticketToDelete.isVisited && ticketToDelete.visitedAt && (
+                      <div className="text-green-700">
+                        <span className="font-medium">Validated At:</span> {new Date(ticketToDelete.visitedAt).toLocaleString()}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+              <div className="flex justify-end gap-2">
+                <Button type="button" variant="outline" onClick={cancelDelete}>Cancel</Button>
+                <Button type="button" variant="destructive" onClick={confirmDelete}>Delete</Button>
+              </div>
+            </div>
           </DialogContent>
         </Dialog>
       </main>

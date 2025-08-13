@@ -37,6 +37,11 @@ export default function AdminPerformances() {
     venue: "",
     price: ""
   });
+  // Delete performance dialog state
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [performanceToDelete, setPerformanceToDelete] = useState<Performance | null>(null);
+  const [deleteTicketCount, setDeleteTicketCount] = useState<number | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [adminUser, setAdminUser] = useState<{ username: string; email: string } | null>(null);
   const router = useRouter();
 
@@ -102,25 +107,48 @@ export default function AdminPerformances() {
     }
   };
 
-  const handleDeletePerformance = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this performance?")) {
-      return;
-    }
-
+  const openDeleteDialog = async (performance: Performance) => {
+    setPerformanceToDelete(performance);
+    setIsDeleteDialogOpen(true);
+    setDeleteTicketCount(null);
     try {
-      const response = await fetch(`/api/performances/${id}`, {
-        method: "DELETE",
-      });
+      // Fetch tickets just to count them (avoid storing all)
+      const res = await fetch(`/api/tickets?performanceId=${performance._id}`);
+      const data = await res.json();
+      if (data.success && Array.isArray(data.data)) {
+        setDeleteTicketCount(data.data.length);
+      } else {
+        setDeleteTicketCount(0);
+      }
+    } catch (e) {
+      setDeleteTicketCount(0);
+    }
+  };
 
+  const cancelDeletePerformance = () => {
+    if (isDeleting) return;
+    setIsDeleteDialogOpen(false);
+    setPerformanceToDelete(null);
+    setDeleteTicketCount(null);
+  };
+
+  const confirmDeletePerformance = async () => {
+    if (!performanceToDelete?._id) return;
+    setIsDeleting(true);
+    try {
+      const response = await fetch(`/api/performances/${performanceToDelete._id}`, { method: "DELETE" });
       if (response.ok) {
-        setPerformances(performances.filter(p => p._id !== id));
-        toast.success("Performance deleted successfully");
+        setPerformances(performances.filter(p => p._id !== performanceToDelete._id));
+        toast.success("Performance deleted");
+        cancelDeletePerformance();
       } else {
         toast.error("Error deleting performance");
       }
     } catch (error) {
       console.error("Error deleting performance:", error);
       toast.error("Error deleting performance");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -327,7 +355,7 @@ export default function AdminPerformances() {
                     <Button
                       variant="destructive"
                       size="sm"
-                      onClick={() => performance._id && handleDeletePerformance(performance._id)}
+                      onClick={() => openDeleteDialog(performance)}
                     >
                       Delete
                     </Button>
@@ -454,6 +482,48 @@ export default function AdminPerformances() {
                 </Button>
               </div>
             </form>
+          </DialogContent>
+        </Dialog>
+        {/* Delete Performance Dialog */}
+        <Dialog open={isDeleteDialogOpen} onOpenChange={(open) => { if (!open) cancelDeletePerformance(); }}>
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Delete Performance</DialogTitle>
+              <DialogDescription>
+                This will permanently remove the performance{deleteTicketCount !== null && deleteTicketCount > 0 ? ' and all its tickets' : ''}. This action cannot be undone.
+              </DialogDescription>
+            </DialogHeader>
+            {performanceToDelete && (
+              <div className="space-y-4 text-sm">
+                <div className="rounded-md border p-4 bg-red-50/50">
+                  <p className="font-medium text-red-700 mb-2">{performanceToDelete.name}</p>
+                  <div className="grid md:grid-cols-2 gap-x-6 gap-y-2">
+                    <div><span className="font-medium">Date:</span> {new Date(performanceToDelete.date).toLocaleDateString()}</div>
+                    <div><span className="font-medium">Venue:</span> {performanceToDelete.venue}</div>
+                    <div><span className="font-medium">Price:</span> ${performanceToDelete.price}</div>
+                    {deleteTicketCount !== null ? (
+                      <div><span className="font-medium">Tickets:</span> {deleteTicketCount}</div>
+                    ) : (
+                      <div><span className="font-medium">Tickets:</span> Loading...</div>
+                    )}
+                  </div>
+                  {performanceToDelete.description && (
+                    <p className="mt-3 line-clamp-3 text-gray-700">{performanceToDelete.description}</p>
+                  )}
+                </div>
+                {deleteTicketCount !== null && deleteTicketCount > 0 && (
+                  <div className="text-xs text-red-600 bg-red-50 rounded-md p-2">
+                    Deleting will also remove {deleteTicketCount} ticket{deleteTicketCount === 1 ? '' : 's'} associated with this performance.
+                  </div>
+                )}
+              </div>
+            )}
+            <div className="flex justify-end gap-2 mt-2">
+              <Button type="button" variant="outline" onClick={cancelDeletePerformance} disabled={isDeleting}>Cancel</Button>
+              <Button type="button" variant="destructive" onClick={confirmDeletePerformance} disabled={isDeleting}>
+                {isDeleting ? 'Deleting...' : 'Delete'}
+              </Button>
+            </div>
           </DialogContent>
         </Dialog>
       </div>

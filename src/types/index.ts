@@ -17,7 +17,7 @@ export interface Ticket {
   placeNumber: string | number;
   customerPhoneNumber: string;
   customerName: string;
-  referenceName: string;
+  referenceName?: string;
   qrCode?: string;
   status: 'paid' | 'approved' | 'pending';
   isVisited: boolean;

@@ -40,9 +40,10 @@ export async function POST(request: NextRequest) {
   try {
     await dbConnect();
     const body = await request.json();
+  console.log('[API] Create ticket request body:', body);
     
     // Validate required fields
-    const { performanceId, placeRow, placeNumber, customerPhoneNumber, customerName, referenceName } = body;
+  const { performanceId, placeRow, placeNumber, customerPhoneNumber, customerName, referenceName, status } = body;
     if (!performanceId || !placeRow || !placeNumber || !customerPhoneNumber || !customerName) {
       const errorResponse: ApiResponse = {
         success: false,
@@ -77,7 +78,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create ticket first to get the MongoDB ObjectId
-    const ticket = new TicketModel({
+  const ticket = new TicketModel({
       performanceId,
       placeRow,
       placeNumber,
@@ -85,6 +86,7 @@ export async function POST(request: NextRequest) {
       customerName,
       referenceName,
       isVisited: false,
+      status: status || 'pending'
     });
 
     const savedTicket = await ticket.save();
@@ -140,7 +142,7 @@ export async function POST(request: NextRequest) {
     console.error('Error creating ticket:', error);
     const errorResponse: ApiResponse = {
       success: false,
-      error: 'Failed to create ticket',
+      error: 'Failed to create ticket' + (error instanceof Error ? `: ${error.message}` : ''),
     };
     return NextResponse.json(errorResponse, { status: 500 });
   }

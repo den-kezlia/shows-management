@@ -48,7 +48,8 @@ export default function AdminTickets() {
     placeNumber: "",
     customerPhoneNumber: "",
     customerName: "",
-    referenceName: "",
+  referenceName: "",
+  status: 'pending',
   });
   const [editTicket, setEditTicket] = useState({
     performanceId: "",
@@ -56,7 +57,8 @@ export default function AdminTickets() {
     placeNumber: "",
     customerPhoneNumber: "",
     customerName: "",
-    referenceName: "",
+  referenceName: "",
+  status: 'paid',
   });
   const [adminUser, setAdminUser] = useState<{ username: string; email: string } | null>(null);
   const [sortBy, setSortBy] = useState<'performance' | 'date' | 'customer' | 'status'>('performance');
@@ -126,6 +128,7 @@ export default function AdminTickets() {
           ...newTicket,
           placeRow: newTicket.placeRow || 1,
           placeNumber: newTicket.placeNumber || 1,
+          status: newTicket.status,
         }),
       });
 
@@ -139,6 +142,7 @@ export default function AdminTickets() {
           customerPhoneNumber: "",
           customerName: "",
           referenceName: "",
+          status: 'pending',
         });
         setIsCreateDialogOpen(false);
         toast.success("Ticket created successfully!");
@@ -168,7 +172,8 @@ export default function AdminTickets() {
       placeNumber: ticket.placeNumber?.toString() || "",
       customerPhoneNumber: ticket.customerPhoneNumber,
       customerName: ticket.customerName,
-      referenceName: ticket.referenceName || "",
+  referenceName: ticket.referenceName || "",
+  status: ticket.status || 'paid',
     });
     setIsEditDialogOpen(true);
   };
@@ -187,6 +192,7 @@ export default function AdminTickets() {
           ...editTicket,
           placeRow: parseInt(editTicket.placeRow) || 1,
           placeNumber: parseInt(editTicket.placeNumber) || 1,
+          status: editTicket.status,
         }),
       });
 
@@ -391,6 +397,22 @@ export default function AdminTickets() {
                     }
                     placeholder="Enter reference name"
                   />
+                </div>
+                <div>
+                  <Label htmlFor="status">Status</Label>
+                  <Select
+                    value={newTicket.status}
+                    onValueChange={(value) => setNewTicket({ ...newTicket, status: value as any })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pending">⏳ Pending</SelectItem>
+                      <SelectItem value="paid">💳 Paid</SelectItem>
+                      <SelectItem value="approved">✅ Approved</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <Button type="submit" className="w-full">
@@ -623,6 +645,22 @@ export default function AdminTickets() {
                   value={editTicket.referenceName}
                   onChange={(e) => setEditTicket({...editTicket, referenceName: e.target.value})}
                 />
+              </div>
+              <div>
+                <Label htmlFor="editStatus">Status</Label>
+                <Select
+                  value={editTicket.status}
+                  onValueChange={(value) => setEditTicket({ ...editTicket, status: value as any })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pending">⏳ Pending</SelectItem>
+                    <SelectItem value="paid">💳 Paid</SelectItem>
+                    <SelectItem value="approved">✅ Approved</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="flex justify-end space-x-2">
                 <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)}>

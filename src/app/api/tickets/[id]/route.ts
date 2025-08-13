@@ -43,7 +43,7 @@ export async function PUT(
     await dbConnect();
     const body = await request.json();
     
-    const { performanceId, placeRow, placeNumber, customerPhoneNumber, customerName, referenceName } = body;
+  const { performanceId, placeRow, placeNumber, customerPhoneNumber, customerName, referenceName, status } = body;
     
     // Validate required fields
     if (!performanceId || !placeRow || !placeNumber || !customerPhoneNumber || !customerName) {
@@ -63,6 +63,7 @@ export async function PUT(
         customerPhoneNumber,
         customerName,
         referenceName,
+        status: status || 'paid',
         updatedAt: new Date(),
       },
       { new: true, runValidators: true }

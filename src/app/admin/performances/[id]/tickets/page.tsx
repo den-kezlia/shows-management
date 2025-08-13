@@ -30,7 +30,8 @@ export default function PerformanceTickets() {
     placeNumber: "",
     customerPhoneNumber: "",
     customerName: "",
-    referenceName: ""
+  referenceName: "",
+  status: 'pending'
   });
   const [editTicket, setEditTicket] = useState({
     performanceId: "",
@@ -38,7 +39,8 @@ export default function PerformanceTickets() {
     placeNumber: "",
     customerPhoneNumber: "",
     customerName: "",
-    referenceName: "",
+  referenceName: "",
+  status: 'paid'
   });
 
   // Debug state changes
@@ -108,6 +110,7 @@ export default function PerformanceTickets() {
           ...newTicket,
           placeRow: newTicket.placeRow || 1,
           placeNumber: newTicket.placeNumber || 1,
+          status: newTicket.status,
         }),
       });
 
@@ -123,7 +126,8 @@ export default function PerformanceTickets() {
           placeNumber: "",
           customerPhoneNumber: "",
           customerName: "",
-          referenceName: ""
+          referenceName: "",
+          status: 'pending'
         });
         setIsCreateDialogOpen(false);
         toast.success("Ticket created successfully!");
@@ -153,7 +157,8 @@ export default function PerformanceTickets() {
       placeNumber: ticket.placeNumber?.toString() || "",
       customerPhoneNumber: ticket.customerPhoneNumber,
       customerName: ticket.customerName,
-      referenceName: ticket.referenceName || "",
+  referenceName: ticket.referenceName || "",
+  status: ticket.status || 'paid'
     });
     setIsEditDialogOpen(true);
   };
@@ -172,6 +177,7 @@ export default function PerformanceTickets() {
           ...editTicket,
           placeRow: parseInt(editTicket.placeRow) || 1,
           placeNumber: parseInt(editTicket.placeNumber) || 1,
+          status: editTicket.status,
         }),
       });
 
@@ -348,6 +354,22 @@ export default function PerformanceTickets() {
                       onChange={(e) => setNewTicket({...newTicket, referenceName: e.target.value})}
                       placeholder="Enter reference name"
                     />
+                  </div>
+                  <div>
+                    <Label htmlFor="status">Status</Label>
+                    <Select
+                      value={newTicket.status}
+                      onValueChange={(value) => setNewTicket({ ...newTicket, status: value as any })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pending">⏳ Pending</SelectItem>
+                        <SelectItem value="paid">💳 Paid</SelectItem>
+                        <SelectItem value="approved">✅ Approved</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="flex justify-end gap-2">
                     <Button
@@ -629,6 +651,22 @@ export default function PerformanceTickets() {
                   value={editTicket.referenceName}
                   onChange={(e) => setEditTicket({...editTicket, referenceName: e.target.value})}
                 />
+              </div>
+              <div>
+                <Label htmlFor="editStatus">Status</Label>
+                <Select
+                  value={editTicket.status}
+                  onValueChange={(value) => setEditTicket({ ...editTicket, status: value as any })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pending">⏳ Pending</SelectItem>
+                    <SelectItem value="paid">💳 Paid</SelectItem>
+                    <SelectItem value="approved">✅ Approved</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="flex justify-end space-x-2">
                 <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)}>

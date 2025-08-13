@@ -3,10 +3,13 @@ import dbConnect from '@/lib/db';
 import { PerformanceModel } from '@/lib/models';
 import { ApiResponse, Performance } from '@/types';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     await dbConnect();
-    const performances = await PerformanceModel.find().sort({ date: 1 });
+    const showId = request.nextUrl.searchParams.get('showId');
+    const query: any = {};
+    if (showId) query.showId = showId;
+    const performances = await PerformanceModel.find(query).sort({ date: 1 });
     
     const response: ApiResponse<Performance[]> = {
       success: true,
@@ -30,7 +33,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     
     // Validate required fields
-    const { name, description, date, venue, price } = body;
+  const { name, description, date, venue, price, showId } = body;
     if (!name || !description || !date) {
       const errorResponse: ApiResponse = {
         success: false,
@@ -46,6 +49,7 @@ export async function POST(request: NextRequest) {
       date: new Date(date),
       venue: venue || '',
       price: price ? parseFloat(price) : 0,
+      showId: showId || undefined,
     });
 
     const savedPerformance = await performance.save();

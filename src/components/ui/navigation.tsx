@@ -19,6 +19,7 @@ interface AdminNavProps {
 
 const adminNavItems: NavItem[] = [
   { href: "/admin/dashboard", label: "Dashboard", icon: "🏠" },
+  { href: "/admin/shows", label: "Shows", icon: "🎞️" },
   { href: "/admin/performances", label: "Performances", icon: "🎪" },
   { href: "/admin/tickets", label: "Tickets", icon: "🎫" },
 ];

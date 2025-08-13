@@ -179,7 +179,24 @@ export default function AdminDashboard() {
         </div>
 
         {/* Action Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+          <Card className="hover:shadow-lg transition-all duration-200 hover:scale-105 border-rose-200">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-rose-800">
+                🎞️ Shows
+              </CardTitle>
+              <CardDescription className="text-sm">
+                Group and manage shows
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <Link href="/admin/shows">
+                <Button className="w-full bg-rose-600 hover:bg-rose-700">
+                  Manage Shows
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
           <Card className="hover:shadow-lg transition-all duration-200 hover:scale-105 border-blue-200">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-blue-800">

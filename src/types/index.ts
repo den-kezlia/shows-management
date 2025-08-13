@@ -6,6 +6,20 @@ export interface Performance {
   date: Date;
   venue?: string;
   price?: number;
+  showId?: string; // reference to Show (optional)
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface Show {
+  _id?: string;
+  name: string;
+  description: string;
+  // Initially a show can optionally select an existing performance to attach
+  initialPerformanceId?: string;
+  performanceIds?: string[]; // full set of associated performances (optional, derived from Performance.showId)
+  mainImage?: string; // primary image URL
+  galleryImages?: string[]; // additional image URLs
   createdAt?: Date;
   updatedAt?: Date;
 }

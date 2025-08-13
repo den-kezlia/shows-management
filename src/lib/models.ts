@@ -1,5 +1,16 @@
 import { Schema, model, models } from 'mongoose';
-import { Performance, Ticket, Admin } from '@/types';
+import { Performance, Ticket, Admin, Show } from '@/types';
+
+// Image Schema (binary storage)
+const imageSchema = new Schema(
+  {
+    filename: { type: String, required: true },
+    contentType: { type: String, required: true },
+    size: { type: Number, required: true },
+    data: { type: Buffer, required: true },
+  },
+  { timestamps: true }
+);
 
 // Performance Schema
 const performanceSchema = new Schema<Performance>(
@@ -10,6 +21,7 @@ const performanceSchema = new Schema<Performance>(
     date: { type: Date, required: true },
     venue: { type: String },
     price: { type: Number },
+    showId: { type: String, ref: 'Show' },
   },
   {
     timestamps: true,
@@ -48,12 +60,32 @@ const adminSchema = new Schema<Admin>(
   }
 );
 
+// Show Schema
+const showSchema = new Schema<Show>(
+  {
+    name: { type: String, required: true },
+    description: { type: String, required: true },
+    initialPerformanceId: { type: String, ref: 'Performance' },
+    performanceIds: [{ type: String, ref: 'Performance' }],
+  mainImage: { type: String },
+  galleryImages: [{ type: String }],
+  },
+  {
+    timestamps: true,
+  }
+);
+
 // Create indexes for better performance
 ticketSchema.index({ performanceId: 1, placeRow: 1, placeNumber: 1 });
 ticketSchema.index({ qrCode: 1 });
 ticketSchema.index({ referenceName: 1 });
+performanceSchema.index({ showId: 1 });
+
+// Export Show model
+export const ShowModel = models.Show || model<Show>('Show', showSchema);
 
 // Export models
 export const PerformanceModel = models.Performance || model<Performance>('Performance', performanceSchema);
 export const TicketModel = models.Ticket || model<Ticket>('Ticket', ticketSchema);
 export const AdminModel = models.Admin || model<Admin>('Admin', adminSchema);
+export const ImageModel = models.Image || model('Image', imageSchema);

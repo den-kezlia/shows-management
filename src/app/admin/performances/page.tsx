@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { LoadingScreen } from "@/components/ui/spinner";
 import { AdminNav } from "@/components/ui/navigation";
-import { Performance } from "@/types";
+import { Performance, Show } from "@/types";
 
 export default function AdminPerformances() {
   const [performances, setPerformances] = useState<Performance[]>([]);
@@ -27,7 +27,8 @@ export default function AdminPerformances() {
     date: "",
     time: "",
     venue: "",
-    price: ""
+    price: "",
+    showId: ""
   });
   const [editPerformance, setEditPerformance] = useState({
     name: "",
@@ -35,8 +36,10 @@ export default function AdminPerformances() {
     date: "",
     time: "",
     venue: "",
-    price: ""
+    price: "",
+    showId: ""
   });
+  const [shows, setShows] = useState<Show[]>([]);
   // Delete performance dialog state
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [performanceToDelete, setPerformanceToDelete] = useState<Performance | null>(null);
@@ -54,7 +57,8 @@ export default function AdminPerformances() {
       return;
     }
     setAdminUser(JSON.parse(user));
-    loadPerformances();
+  loadPerformances();
+  loadShows();
   }, [router]);
 
   const loadPerformances = async () => {
@@ -68,6 +72,16 @@ export default function AdminPerformances() {
       console.error("Error loading performances:", error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadShows = async () => {
+    try {
+      const res = await fetch('/api/shows');
+      const data = await res.json();
+      if (data.success) setShows(data.data);
+    } catch (e) {
+      console.error('Error loading shows', e);
     }
   };
 
@@ -95,7 +109,8 @@ export default function AdminPerformances() {
           date: "",
           time: "",
           venue: "",
-          price: ""
+          price: "",
+          showId: ""
         });
         setIsCreateDialogOpen(false);
       } else {
@@ -179,7 +194,8 @@ export default function AdminPerformances() {
       date: dateStr,
       time: timeStr,
       venue: performance.venue || '',
-      price: performance.price ? performance.price.toString() : '0'
+      price: performance.price ? performance.price.toString() : '0',
+      showId: (performance as any).showId || ''
     });
     setIsEditDialogOpen(true);
   };
@@ -303,6 +319,21 @@ export default function AdminPerformances() {
                     onChange={(e) => setNewPerformance({...newPerformance, price: e.target.value})}
                     required
                   />
+                </div>
+                <div>
+                  <Label htmlFor="showId">Show (optional)</Label>
+                  <select
+                    id="showId"
+                    aria-label="Show"
+                    className="w-full border rounded p-2 text-sm"
+                    value={newPerformance.showId}
+                    onChange={e => setNewPerformance({ ...newPerformance, showId: e.target.value })}
+                  >
+                    <option value="">-- None --</option>
+                    {shows.map(s => (
+                      <option key={s._id} value={s._id}>{s.name}</option>
+                    ))}
+                  </select>
                 </div>
                 <div className="flex justify-end gap-2">
                   <Button
@@ -468,6 +499,21 @@ export default function AdminPerformances() {
                   onChange={(e) => setEditPerformance({...editPerformance, price: e.target.value})}
                   required
                 />
+              </div>
+              <div>
+                <Label htmlFor="edit-show">Show (optional)</Label>
+                <select
+                  id="edit-show"
+                  aria-label="Edit Show"
+                  className="w-full border rounded p-2 text-sm"
+                  value={editPerformance.showId}
+                  onChange={e => setEditPerformance({ ...editPerformance, showId: e.target.value })}
+                >
+                  <option value="">-- None --</option>
+                  {shows.map(s => (
+                    <option key={s._id} value={s._id}>{s.name}</option>
+                  ))}
+                </select>
               </div>
               <div className="flex justify-end gap-2">
                 <Button

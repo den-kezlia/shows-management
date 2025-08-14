@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken, extractTokenFromHeader } from '@/lib/auth';
-import dbConnect from '@/lib/db';
-import { AdminModel } from '@/lib/models';
+import { prisma } from '@/lib/prisma';
 import { ApiResponse } from '@/types';
+export const runtime = 'nodejs';
 
 export async function GET(request: NextRequest) {
   try {
-    await dbConnect();
-    
     const authHeader = request.headers.get('authorization');
     const token = extractTokenFromHeader(authHeader);
     
@@ -29,8 +27,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(errorResponse, { status: 401 });
     }
 
-    // Check if admin still exists in database
-    const admin = await AdminModel.findById(payload.adminId);
+  // Check if admin still exists in database
+  const admin = await prisma.admin.findUnique({ where: { id: payload.adminId } });
     if (!admin) {
       const errorResponse: ApiResponse = {
         success: false,
@@ -42,11 +40,7 @@ export async function GET(request: NextRequest) {
     const response: ApiResponse<{ admin: object }> = {
       success: true,
       data: {
-        admin: {
-          id: admin._id,
-          username: admin.username,
-          email: admin.email,
-        },
+  admin: { id: admin.id, username: admin.username, email: admin.email },
       },
       message: 'Token is valid',
     };

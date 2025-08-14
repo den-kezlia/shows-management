@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/lib/db';
-import { AdminModel } from '@/lib/models';
+import { prisma } from '@/lib/prisma';
 import { comparePassword, generateToken } from '@/lib/auth';
 import { ApiResponse } from '@/types';
+export const runtime = 'nodejs';
 
 export async function POST(request: NextRequest) {
   try {
-    await dbConnect();
     const body = await request.json();
     
     const { username, password } = body;
@@ -18,9 +17,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(errorResponse, { status: 400 });
     }
 
-    // Find admin user
-    const admin = await AdminModel.findOne({ 
-      $or: [{ username }, { email: username }] 
+    // Find admin user (by username or email)
+    const admin = await prisma.admin.findFirst({
+      where: {
+        OR: [
+          { username: username as string },
+          { email: username as string },
+        ],
+      },
     });
 
     if (!admin) {
@@ -32,7 +36,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check password
-    const isPasswordValid = await comparePassword(password, admin.password);
+  const isPasswordValid = await comparePassword(password, admin.password);
     if (!isPasswordValid) {
       const errorResponse: ApiResponse = {
         success: false,
@@ -43,20 +47,16 @@ export async function POST(request: NextRequest) {
 
     // Generate JWT token
     const token = generateToken({
-      adminId: admin._id.toString(),
-      username: admin.username,
-      email: admin.email,
+  adminId: admin.id,
+  username: admin.username,
+  email: admin.email,
     });
 
     const response: ApiResponse<{ token: string; admin: object }> = {
       success: true,
       data: {
         token,
-        admin: {
-          id: admin._id,
-          username: admin.username,
-          email: admin.email,
-        },
+  admin: { id: admin.id, username: admin.username, email: admin.email },
       },
       message: 'Login successful',
     };

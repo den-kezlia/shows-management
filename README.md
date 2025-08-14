@@ -1,6 +1,6 @@
 # Tickets Agent v2 - Theater Ticket Management System
 
-A comprehensive full-stack web application for managing theater performances, creating tickets, and validating entries with QR codes. Built with Next.js, Express.js, MongoDB, and shadcn/ui.
+A full-stack app for managing theater shows, performances, tickets, and QR validation. Now powered by Next.js App Router, Prisma + Postgres, and Vercel Blob for images.
 
 ## 🎭 Features
 
@@ -15,8 +15,8 @@ A comprehensive full-stack web application for managing theater performances, cr
 
 - **Frontend**: Next.js 15 with App Router, TypeScript, Tailwind CSS
 - **UI Components**: shadcn/ui (Radix UI primitives)
-- **Backend**: Express.js API layer
-- **Database**: MongoDB with Mongoose ODM
+- **Backend**: Next.js App Router API routes
+- **Database**: Postgres (Prisma ORM; Vercel Postgres recommended)
 - **Authentication**: JWT-based admin authentication
 - **QR Codes**: QR code generation and validation
 - **Messaging**: Email (Nodemailer), Telegram Bot API, Viber Bot API
@@ -26,7 +26,7 @@ A comprehensive full-stack web application for managing theater performances, cr
 ### Prerequisites
 
 - Node.js 18+ and npm
-- MongoDB (local or MongoDB Atlas)
+- Postgres (Vercel Postgres or local)
 - (Optional) SMTP server for email functionality
 - (Optional) Telegram Bot Token for Telegram integration
 - (Optional) Viber Bot Token for Viber integration
@@ -34,24 +34,28 @@ A comprehensive full-stack web application for managing theater performances, cr
 ### Installation
 
 1. **Clone the repository**
+
    ```bash
    git clone <repository-url>
    cd tickets-agent-v2
    ```
 
 2. **Install dependencies**
+
    ```bash
    npm install
    ```
 
 3. **Environment Configuration**
+
    ```bash
    cp .env.local.example .env.local
    ```
    
    Edit `.env.local` with your configuration:
+   
    ```env
-   MONGODB_URI=mongodb://localhost:27017/tickets-agent-v2
+   POSTGRES_URL=postgres://user:pass@host:5432/db
    JWT_SECRET=your-super-secret-jwt-key
    SMTP_HOST=smtp.gmail.com
    SMTP_PORT=587
@@ -60,23 +64,18 @@ A comprehensive full-stack web application for managing theater performances, cr
    TELEGRAM_BOT_TOKEN=your-telegram-bot-token
    VIBER_BOT_TOKEN=your-viber-bot-token
    NEXT_PUBLIC_BASE_URL=http://localhost:3000
+   BLOB_READ_WRITE_TOKEN=vercel-blob-token-here
    ```
 
-4. **Start MongoDB**
+4. **Prisma**
+
    ```bash
-   # If using local MongoDB
-   mongod
-   
-   # Or ensure your MongoDB Atlas connection is configured
+   npm run prisma:generate
+   npm run prisma:migrate
    ```
 
-5. **Create an Admin User**
-   ```bash
-   # Create a simple script to add an admin user to MongoDB
-   # This is a one-time setup step
-   ```
+5. **Run the Development Server**
 
-6. **Run the Development Server**
    ```bash
    npm run dev
    ```
@@ -86,6 +85,7 @@ A comprehensive full-stack web application for managing theater performances, cr
 ## 📱 Usage
 
 ### Admin Panel
+
 1. Navigate to `/admin` and log in with admin credentials
 2. Access the dashboard to manage performances and tickets
 3. Create new performances with details and photos
@@ -93,6 +93,7 @@ A comprehensive full-stack web application for managing theater performances, cr
 5. Send tickets via email, Telegram, or Viber
 
 ### QR Scanner
+
 1. Navigate to `/scanner` for ticket validation
 2. Upload QR code images or use camera scanner
 3. Validate tickets and prevent duplicate entries
@@ -100,18 +101,17 @@ A comprehensive full-stack web application for managing theater performances, cr
 
 ## 🏗️ Project Structure
 
-```
+```text
 src/
 ├── app/                    # Next.js App Router pages
 │   ├── admin/             # Admin panel pages
-│   ├── api/               # API routes
+│   ├── api/               # Next.js API routes (App Router)
 │   ├── scanner/           # QR scanner page
 │   └── page.tsx           # Home page
 ├── components/            # Reusable UI components
 │   └── ui/               # shadcn/ui components
 ├── lib/                  # Utility functions and configurations
-│   ├── models.ts         # MongoDB models
-│   ├── db.ts             # Database connection
+│   ├── prisma.ts         # Prisma client singleton
 │   ├── auth.ts           # Authentication utilities
 │   ├── qr-utils.ts       # QR code utilities
 │   ├── messaging.ts      # Email/Telegram/Viber integration
@@ -122,6 +122,7 @@ src/
 ## 🔧 API Endpoints
 
 ### Performances
+
 - `GET /api/performances` - List all performances
 - `POST /api/performances` - Create new performance
 - `GET /api/performances/[id]` - Get specific performance
@@ -129,42 +130,53 @@ src/
 - `DELETE /api/performances/[id]` - Delete performance
 
 ### Tickets
+
 - `GET /api/tickets` - List all tickets
 - `POST /api/tickets` - Create new ticket
 - `POST /api/tickets/validate` - Validate QR code
 
 ### Authentication
+
 - `POST /api/auth/login` - Admin login
 
 ## 🧪 Development
 
 ### Running Tests
+
 ```bash
 npm test
 ```
 
 ### Building for Production
+
 ```bash
 npm run build
 npm start
 ```
 
 ### Linting
+
 ```bash
 npm run lint
 ```
 
 ## 📧 Messaging Integration
 
+
 ### Email Setup
+
 Configure SMTP settings in `.env.local` for email ticket delivery.
 
+ 
 ### Telegram Bot Setup
+
 1. Create a bot via @BotFather on Telegram
 2. Get the bot token and add it to `.env.local`
 3. Users need to start a conversation with your bot
 
+ 
 ### Viber Bot Setup
+
 1. Create a Viber bot account
 2. Get the bot token and add it to `.env.local`
 3. Configure webhook endpoints as needed
@@ -187,6 +199,31 @@ The application can be deployed to various platforms:
 - **DigitalOcean App Platform**: Container-based deployment
 
 Ensure environment variables are configured in your deployment platform.
+
+## 📦 Uploads
+
+Images are uploaded to Vercel Blob via `/api/blob-upload`. Legacy `/api/upload` and `/api/images/*` return 410 and are deprecated.
+
+## 🔁 One-off Migration: MongoDB -> Postgres (+ Blob)
+
+If migrating existing Mongo data:
+
+1. Add to `.env.local`:
+   - MONGODB_URI (source)
+   - POSTGRES_URL (target)
+   - BLOB_READ_WRITE_TOKEN (for image uploads)
+2. Prepare DB: `npm run prisma:generate && npm run prisma:migrate`
+3. Run locally with ts-node:
+
+```bash
+npx ts-node scripts/migrate-mongo-to-postgres.ts
+```
+
+Notes:
+
+- Upserts Admins, Shows, Performances, Tickets, preserving IDs where possible.
+- Images already use Blob URLs; extend the script to fetch any binary images and upload with `uploadToBlob`.
+- Seats uniqueness is enforced by Prisma unique index on Ticket: (performanceId, placeRow, placeNumber).
 
 ## 🤝 Contributing
 

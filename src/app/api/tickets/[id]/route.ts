@@ -1,28 +1,42 @@
 import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/lib/db';
-import { TicketModel } from '@/lib/models';
+import { prisma } from '@/lib/prisma';
 import { ApiResponse, Ticket } from '@/types';
+import { TicketStatus } from '@prisma/client';
+
+export const runtime = 'nodejs';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await dbConnect();
     const { id } = await params;
-    const ticket = await TicketModel.findById(id).populate('performanceId');
-    
-    if (!ticket) {
+    const t = await prisma.ticket.findUnique({ where: { id } });
+    if (!t) {
       const errorResponse: ApiResponse = {
         success: false,
         error: 'Ticket not found',
       };
       return NextResponse.json(errorResponse, { status: 404 });
     }
-    
     const response: ApiResponse<Ticket> = {
       success: true,
-      data: ticket.toObject(),
+      data: {
+        _id: t.id,
+        performanceId: t.performanceId,
+        placeRow: t.placeRow,
+        placeNumber: t.placeNumber,
+        customerPhoneNumber: t.customerPhoneNumber,
+        customerName: t.customerName,
+        referenceName: t.referenceName ?? undefined,
+        qrCode: t.qrCode ?? undefined,
+        status: t.status as Ticket['status'],
+        isVisited: t.isVisited,
+        visitedAt: t.visitedAt ?? undefined,
+        approvedAt: t.approvedAt ?? undefined,
+        createdAt: t.createdAt,
+        updatedAt: t.updatedAt,
+      },
     };
     
     return NextResponse.json(response);
@@ -41,11 +55,10 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await dbConnect();
     const { id } = await params;
     const body = await request.json();
     
-  const { performanceId, placeRow, placeNumber, customerPhoneNumber, customerName, referenceName, status } = body;
+    const { performanceId, placeRow, placeNumber, customerPhoneNumber, customerName, referenceName, status } = body as Partial<Ticket> & { performanceId: string };
     
     // Validate required fields
     if (!performanceId || !placeRow || !placeNumber || !customerPhoneNumber || !customerName) {
@@ -56,22 +69,20 @@ export async function PUT(
       return NextResponse.json(errorResponse, { status: 400 });
     }
     
-    const ticket = await TicketModel.findByIdAndUpdate(
-      id,
-      {
+  const updated = await prisma.ticket.update({
+      where: { id },
+      data: {
         performanceId,
-        placeRow: parseInt(placeRow) || 1,
-        placeNumber: parseInt(placeNumber) || 1,
+        placeRow: String(placeRow),
+        placeNumber: String(placeNumber),
         customerPhoneNumber,
         customerName,
-        referenceName,
-        status: status || 'paid',
-        updatedAt: new Date(),
+        referenceName: referenceName || null,
+    status: (status || 'paid') as TicketStatus,
       },
-      { new: true, runValidators: true }
-    ).populate('performanceId');
-    
-    if (!ticket) {
+    });
+
+    if (!updated) {
       const errorResponse: ApiResponse = {
         success: false,
         error: 'Ticket not found',
@@ -81,7 +92,22 @@ export async function PUT(
     
     const response: ApiResponse<Ticket> = {
       success: true,
-      data: ticket.toObject(),
+      data: {
+        _id: updated.id,
+        performanceId: updated.performanceId,
+        placeRow: updated.placeRow,
+        placeNumber: updated.placeNumber,
+        customerPhoneNumber: updated.customerPhoneNumber,
+        customerName: updated.customerName,
+        referenceName: updated.referenceName ?? undefined,
+        qrCode: updated.qrCode ?? undefined,
+        status: updated.status as Ticket['status'],
+        isVisited: updated.isVisited,
+        visitedAt: updated.visitedAt ?? undefined,
+        approvedAt: updated.approvedAt ?? undefined,
+        createdAt: updated.createdAt,
+        updatedAt: updated.updatedAt,
+      },
       message: 'Ticket updated successfully',
     };
     
@@ -101,11 +127,9 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await dbConnect();
-    const { id } = await params;
-    const ticket = await TicketModel.findByIdAndDelete(id);
-    
-    if (!ticket) {
+  const { id } = await params;
+  const deleted = await prisma.ticket.delete({ where: { id } }).catch(() => null);
+  if (!deleted) {
       const errorResponse: ApiResponse = {
         success: false,
         error: 'Ticket not found',

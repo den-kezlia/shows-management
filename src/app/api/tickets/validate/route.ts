@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/lib/db';
-import { TicketModel, PerformanceModel } from '@/lib/models';
+import { prisma } from '@/lib/prisma';
 import { parseQRCodeData } from '@/lib/qr-utils';
-import { ApiResponse, TicketValidation } from '@/types';
+import { ApiResponse, TicketValidation, Ticket } from '@/types';
+
+export const runtime = 'nodejs';
 
 export async function POST(request: NextRequest) {
   try {
-    await dbConnect();
     const body = await request.json();
     
     const { qrData } = body;
@@ -28,9 +28,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(errorResponse, { status: 400 });
     }
 
-    // Find the ticket
-    const ticket = await TicketModel.findById(parsedData.ticketId);
-    if (!ticket) {
+  // Find the ticket
+  const ticket = await prisma.ticket.findUnique({ where: { id: parsedData.ticketId } });
+  if (!ticket) {
       const errorResponse: ApiResponse = {
         success: false,
         error: 'Ticket not found',
@@ -38,9 +38,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(errorResponse, { status: 404 });
     }
 
-    // Find the performance
-    const performance = await PerformanceModel.findById(ticket.performanceId);
-    if (!performance) {
+  // Find the performance
+  const performance = await prisma.performance.findUnique({ where: { id: ticket.performanceId } });
+  if (!performance) {
       const errorResponse: ApiResponse = {
         success: false,
         error: 'Performance not found',
@@ -50,10 +50,10 @@ export async function POST(request: NextRequest) {
 
     // Validate ticket data matches QR data
     const isDataValid = 
-      ticket.performanceId.toString() === parsedData.performanceId &&
-      ticket.customerName === parsedData.customerName &&
-      ticket.placeRow.toString() === parsedData.placeRow.toString() &&
-      ticket.placeNumber.toString() === parsedData.placeNumber.toString();
+  ticket.performanceId === parsedData.performanceId &&
+  ticket.customerName === parsedData.customerName &&
+  String(ticket.placeRow) === String(parsedData.placeRow) &&
+  String(ticket.placeNumber) === String(parsedData.placeNumber);
 
     if (!isDataValid) {
       const errorResponse: ApiResponse = {
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(errorResponse, { status: 400 });
     }
 
-    const alreadyVisited = ticket.isVisited;
+  const alreadyVisited = ticket.isVisited;
     
     // Don't automatically mark as visited - wait for manual approval
     // if (!alreadyVisited) {
@@ -73,8 +73,34 @@ export async function POST(request: NextRequest) {
     // }
 
     const validationResult: TicketValidation = {
-      ticket: ticket.toObject(),
-      performance: performance.toObject(),
+      ticket: {
+        _id: ticket.id,
+        performanceId: ticket.performanceId,
+        placeRow: ticket.placeRow,
+        placeNumber: ticket.placeNumber,
+        customerPhoneNumber: ticket.customerPhoneNumber,
+        customerName: ticket.customerName,
+        referenceName: ticket.referenceName ?? undefined,
+        qrCode: ticket.qrCode ?? undefined,
+        status: ticket.status as Ticket['status'],
+        isVisited: ticket.isVisited,
+        visitedAt: ticket.visitedAt ?? undefined,
+        approvedAt: ticket.approvedAt ?? undefined,
+        createdAt: ticket.createdAt,
+        updatedAt: ticket.updatedAt,
+      },
+      performance: {
+        _id: performance.id,
+        name: performance.name,
+        description: performance.description,
+        photo: performance.photo ?? undefined,
+        date: performance.date,
+        venue: performance.venue ?? undefined,
+        price: performance.price ?? undefined,
+        showId: performance.showId ?? undefined,
+        createdAt: performance.createdAt,
+        updatedAt: performance.updatedAt,
+      },
       isValid: true,
       alreadyVisited,
     };

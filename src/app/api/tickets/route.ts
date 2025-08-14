@@ -1,30 +1,42 @@
 import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/lib/db';
-import { TicketModel, PerformanceModel } from '@/lib/models';
+import { prisma } from '@/lib/prisma';
 import { generateQRCode, QRCodeData } from '@/lib/qr-utils';
 import { sendTicketEmail, sendTicketViaTelegram, sendTicketViaViber } from '@/lib/messaging';
-import { ApiResponse, Ticket } from '@/types';
+import { ApiResponse, Ticket, Performance } from '@/types';
+import { TicketStatus } from '@prisma/client';
+
+export const runtime = 'nodejs';
 
 export async function GET(request: NextRequest) {
   try {
-    await dbConnect();
     const { searchParams } = new URL(request.url);
-    const performanceId = searchParams.get('performanceId');
-    
-    let query = {};
-    if (performanceId) {
-      query = { performanceId };
-    }
-    
-    const tickets = await TicketModel.find(query)
-      .populate('performanceId')
-      .sort({ createdAt: -1 });
-    
+    const performanceId = searchParams.get('performanceId') || undefined;
+
+    const tickets = await prisma.ticket.findMany({
+      where: performanceId ? { performanceId } : undefined,
+      orderBy: { createdAt: 'desc' },
+    });
+
     const response: ApiResponse<Ticket[]> = {
       success: true,
-      data: tickets.map(t => t.toObject()),
+      data: tickets.map((t) => ({
+        _id: t.id,
+        performanceId: t.performanceId,
+        placeRow: t.placeRow,
+        placeNumber: t.placeNumber,
+        customerPhoneNumber: t.customerPhoneNumber,
+        customerName: t.customerName,
+        referenceName: t.referenceName ?? undefined,
+        qrCode: t.qrCode ?? undefined,
+        status: t.status as Ticket['status'],
+        isVisited: t.isVisited,
+        visitedAt: t.visitedAt ?? undefined,
+        approvedAt: t.approvedAt ?? undefined,
+        createdAt: t.createdAt,
+        updatedAt: t.updatedAt,
+      })),
     };
-    
+
     return NextResponse.json(response);
   } catch (error) {
     console.error('Error fetching tickets:', error);
@@ -38,12 +50,19 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    await dbConnect();
     const body = await request.json();
-  console.log('[API] Create ticket request body:', body);
-    
-    // Validate required fields
-  const { performanceId, placeRow, placeNumber, customerPhoneNumber, customerName, referenceName, status } = body;
+    console.log('[API] Create ticket request body:', body);
+
+    const {
+      performanceId,
+      placeRow,
+      placeNumber,
+      customerPhoneNumber,
+      customerName,
+      referenceName,
+      status,
+    } = body as Partial<Ticket> & { performanceId: string };
+
     if (!performanceId || !placeRow || !placeNumber || !customerPhoneNumber || !customerName) {
       const errorResponse: ApiResponse = {
         success: false,
@@ -52,9 +71,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(errorResponse, { status: 400 });
     }
 
-    // Check if performance exists
-    const performance = await PerformanceModel.findById(performanceId);
-    if (!performance) {
+    // Ensure performance exists
+    const performanceRecord = await prisma.performance.findUnique({ where: { id: performanceId } });
+    if (!performanceRecord) {
       const errorResponse: ApiResponse = {
         success: false,
         error: 'Performance not found',
@@ -63,13 +82,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if seat is already taken
-    const existingTicket = await TicketModel.findOne({
-      performanceId,
-      placeRow,
-      placeNumber,
+    const conflicting = await prisma.ticket.findFirst({
+      where: {
+        performanceId,
+        placeRow: String(placeRow),
+        placeNumber: String(placeNumber),
+      },
     });
-
-    if (existingTicket) {
+    if (conflicting) {
       const errorResponse: ApiResponse = {
         success: false,
         error: 'Seat is already taken',
@@ -77,66 +97,88 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(errorResponse, { status: 409 });
     }
 
-    // Create ticket first to get the MongoDB ObjectId
-  const ticket = new TicketModel({
-      performanceId,
-      placeRow,
-      placeNumber,
-      customerPhoneNumber,
-      customerName,
-      referenceName,
-      isVisited: false,
-      status: status || 'pending'
+    // Create the ticket (without QR first)
+  const created = await prisma.ticket.create({
+      data: {
+        performanceId,
+        placeRow: String(placeRow),
+        placeNumber: String(placeNumber),
+        customerPhoneNumber,
+        customerName,
+        referenceName: referenceName || null,
+    status: (status || 'pending') as TicketStatus,
+        isVisited: false,
+      },
     });
 
-    const savedTicket = await ticket.save();
-    
     // Generate QR code with the actual ticket ID
     const qrCodeData: QRCodeData = {
-      ticketId: savedTicket._id.toString(),
+      ticketId: created.id,
       performanceId,
       customerName,
-      placeRow,
-      placeNumber,
+      placeRow: String(placeRow),
+      placeNumber: String(placeNumber),
       timestamp: Date.now(),
     };
-
     const qrCode = await generateQRCode(qrCodeData);
-    
-    // Update ticket with QR code
-    savedTicket.qrCode = qrCode;
-    await savedTicket.save();
-    
-    // Send ticket via requested channels
-    const sendVia = body.sendVia as string[];
-    const sendingPromises: Promise<void>[] = [];
 
-    if (sendVia?.includes('email')) {
-      sendingPromises.push(sendTicketEmail(savedTicket.toObject(), performance.toObject(), qrCode));
-    }
-    if (sendVia?.includes('telegram')) {
-      sendingPromises.push(sendTicketViaTelegram(savedTicket.toObject(), performance.toObject(), qrCode));
-    }
-    if (sendVia?.includes('viber')) {
-      sendingPromises.push(sendTicketViaViber(savedTicket.toObject(), performance.toObject(), qrCode));
-    }
+  const updated = await prisma.ticket.update({
+      where: { id: created.id },
+      data: { qrCode },
+    });
 
-    // Execute all sending operations
-    if (sendingPromises.length > 0) {
+    // Optional: send via channels
+    const sendVia = Array.isArray((body as { sendVia?: string[] }).sendVia)
+      ? (body as { sendVia?: string[] }).sendVia
+      : undefined;
+    const perf: Performance = {
+      _id: performanceRecord.id,
+      name: performanceRecord.name,
+      description: performanceRecord.description,
+      photo: performanceRecord.photo ?? undefined,
+      date: performanceRecord.date,
+      venue: performanceRecord.venue ?? undefined,
+      price: performanceRecord.price ?? undefined,
+      showId: performanceRecord.showId ?? undefined,
+      createdAt: performanceRecord.createdAt,
+      updatedAt: performanceRecord.updatedAt,
+    };
+
+    const ticketForMsg: Ticket = {
+      _id: updated.id,
+      performanceId: updated.performanceId,
+      placeRow: updated.placeRow,
+      placeNumber: updated.placeNumber,
+      customerPhoneNumber: updated.customerPhoneNumber,
+      customerName: updated.customerName,
+      referenceName: updated.referenceName ?? undefined,
+      qrCode: updated.qrCode ?? undefined,
+      status: updated.status as Ticket['status'],
+      isVisited: updated.isVisited,
+      visitedAt: updated.visitedAt ?? undefined,
+      approvedAt: updated.approvedAt ?? undefined,
+      createdAt: updated.createdAt,
+      updatedAt: updated.updatedAt,
+    };
+
+    if (sendVia?.length) {
+      const promises: Promise<void>[] = [];
+      if (sendVia.includes('email')) promises.push(sendTicketEmail(ticketForMsg, perf, qrCode));
+      if (sendVia.includes('telegram')) promises.push(sendTicketViaTelegram(ticketForMsg, perf, qrCode));
+      if (sendVia.includes('viber')) promises.push(sendTicketViaViber(ticketForMsg, perf, qrCode));
       try {
-        await Promise.all(sendingPromises);
-      } catch (sendError) {
-        console.error('Error sending ticket:', sendError);
-        // Continue even if sending fails
+        await Promise.all(promises);
+      } catch (e) {
+        console.error('Error sending ticket:', e);
       }
     }
-    
+
     const response: ApiResponse<Ticket> = {
       success: true,
-      data: savedTicket.toObject(),
+      data: ticketForMsg,
       message: 'Ticket created successfully',
     };
-    
+
     return NextResponse.json(response, { status: 201 });
   } catch (error) {
     console.error('Error creating ticket:', error);

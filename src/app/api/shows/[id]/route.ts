@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/lib/db';
-import { ShowModel, PerformanceModel } from '@/lib/models';
+import { prisma } from '@/lib/prisma';
 import { ApiResponse, Show } from '@/types';
 
 export async function GET(
@@ -8,13 +7,21 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await dbConnect();
     const { id } = await params;
-    const show = await ShowModel.findById(id);
-    if (!show) {
+    const show = await prisma.show.findUnique({ where: { id } });
+  if (!show) {
       return NextResponse.json({ success: false, error: 'Show not found' } as ApiResponse, { status: 404 });
     }
-    return NextResponse.json({ success: true, data: show.toObject() } as ApiResponse<Show>);
+    const mapped: Show = {
+      _id: show.id,
+      name: show.name,
+      description: show.description,
+      mainImage: show.mainImage ?? undefined,
+      galleryImages: show.galleryImages ?? [],
+      createdAt: show.createdAt as unknown as Date,
+      updatedAt: show.updatedAt as unknown as Date,
+    };
+    return NextResponse.json({ success: true, data: mapped } as ApiResponse<Show>);
   } catch (error) {
     console.error('Error fetching show:', error);
     return NextResponse.json({ success: false, error: 'Failed to fetch show' } as ApiResponse, { status: 500 });
@@ -26,7 +33,6 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await dbConnect();
     const { id } = await params;
     const body = await request.json();
     const { name, description, performanceIds, mainImage, galleryImages } = body as {
@@ -46,18 +52,24 @@ export async function PUT(
     if (Array.isArray(galleryImages)) {
       update.galleryImages = galleryImages;
     }
-    const updated = await ShowModel.findByIdAndUpdate(id, update, { new: true, runValidators: true });
+  const updated = await prisma.show.update({ where: { id }, data: update });
     // If performanceIds provided, sync Performance.showId assignments
     if (Array.isArray(performanceIds)) {
       // Detach performances no longer in list
-      await PerformanceModel.updateMany({ showId: id, _id: { $nin: performanceIds } }, { $unset: { showId: '' } });
+      await prisma.performance.updateMany({ where: { showId: id, NOT: { id: { in: performanceIds } } }, data: { showId: null } });
       // Attach new ones
-      await PerformanceModel.updateMany({ _id: { $in: performanceIds } }, { showId: id });
+      await prisma.performance.updateMany({ where: { id: { in: performanceIds } }, data: { showId: id } });
     }
-    if (!updated) {
-      return NextResponse.json({ success: false, error: 'Show not found' } as ApiResponse, { status: 404 });
-    }
-    return NextResponse.json({ success: true, data: updated.toObject(), message: 'Show updated successfully' } as ApiResponse<Show>);
+    const mapped: Show = {
+      _id: updated.id,
+      name: updated.name,
+      description: updated.description,
+      mainImage: updated.mainImage ?? undefined,
+      galleryImages: updated.galleryImages ?? [],
+      createdAt: updated.createdAt as unknown as Date,
+      updatedAt: updated.updatedAt as unknown as Date,
+    };
+    return NextResponse.json({ success: true, data: mapped, message: 'Show updated successfully' } as ApiResponse<Show>);
   } catch (error) {
     console.error('Error updating show:', error);
     return NextResponse.json({ success: false, error: 'Failed to update show' } as ApiResponse, { status: 500 });
@@ -69,14 +81,10 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await dbConnect();
     const { id } = await params;
-    const deleted = await ShowModel.findByIdAndDelete(id);
-    if (!deleted) {
-      return NextResponse.json({ success: false, error: 'Show not found' } as ApiResponse, { status: 404 });
-    }
-    // Optionally detach performances (set showId null)
-    await PerformanceModel.updateMany({ showId: id }, { $unset: { showId: '' } });
+  await prisma.show.delete({ where: { id } });
+  // Detach performances
+  await prisma.performance.updateMany({ where: { showId: id }, data: { showId: null } });
     return NextResponse.json({ success: true, message: 'Show deleted successfully' } as ApiResponse);
   } catch (error) {
     console.error('Error deleting show:', error);

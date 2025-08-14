@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/lib/db';
-import { TicketModel } from '@/lib/models';
-import { ApiResponse } from '@/types';
+import { prisma } from '@/lib/prisma';
+import { ApiResponse, Ticket } from '@/types';
+import { TicketStatus } from '@prisma/client';
+
+export const runtime = 'nodejs';
 
 export async function POST(request: NextRequest) {
   try {
-    await dbConnect();
     const body = await request.json();
     
     const { ticketId } = body;
@@ -18,7 +19,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Find the ticket
-    const ticket = await TicketModel.findById(ticketId);
+    const ticket = await prisma.ticket.findUnique({ where: { id: ticketId } });
     if (!ticket) {
       const errorResponse: ApiResponse = {
         success: false,
@@ -37,15 +38,34 @@ export async function POST(request: NextRequest) {
     }
 
     // Update ticket status to approved
-    ticket.status = 'approved';
-    ticket.isVisited = true;
-    ticket.visitedAt = new Date();
-    ticket.approvedAt = new Date();
-    await ticket.save();
+  const updated = await prisma.ticket.update({
+      where: { id: ticketId },
+      data: {
+    status: 'approved' as TicketStatus,
+        isVisited: true,
+        visitedAt: new Date(),
+        approvedAt: new Date(),
+      },
+    });
 
     const response: ApiResponse = {
       success: true,
-      data: ticket.toObject(),
+      data: {
+        _id: updated.id,
+        performanceId: updated.performanceId,
+        placeRow: updated.placeRow,
+        placeNumber: updated.placeNumber,
+        customerPhoneNumber: updated.customerPhoneNumber,
+        customerName: updated.customerName,
+        referenceName: updated.referenceName ?? undefined,
+        qrCode: updated.qrCode ?? undefined,
+        status: updated.status as Ticket['status'],
+        isVisited: updated.isVisited,
+        visitedAt: updated.visitedAt ?? undefined,
+        approvedAt: updated.approvedAt ?? undefined,
+        createdAt: updated.createdAt,
+        updatedAt: updated.updatedAt,
+      } as Ticket,
       message: 'Ticket approved successfully',
     };
     

@@ -87,7 +87,7 @@ export default function ShowsPage() {
   const uploadFiles = async (files: FileList): Promise<string[]> => {
     const fd = new FormData();
     Array.from(files).forEach(f => fd.append('files', f));
-    const res = await fetch('/api/upload', { method: 'POST', body: fd });
+    const res = await fetch('/api/blob-upload', { method: 'POST', body: fd });
     const data = await res.json();
     if (!data.success) throw new Error(data.error || 'Upload failed');
     return data.urls as string[];

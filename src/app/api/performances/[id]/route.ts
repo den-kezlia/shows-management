@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/lib/db';
-import { PerformanceModel } from '@/lib/models';
+import { prisma } from '@/lib/prisma';
 import { ApiResponse, Performance } from '@/types';
 
 export async function GET(
@@ -8,10 +7,8 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await dbConnect();
     const { id } = await params;
-    
-    const performance = await PerformanceModel.findById(id);
+  const performance = await prisma.performance.findUnique({ where: { id } });
     
     if (!performance) {
       const errorResponse: ApiResponse = {
@@ -23,7 +20,18 @@ export async function GET(
     
     const response: ApiResponse<Performance> = {
       success: true,
-      data: performance.toObject(),
+      data: {
+        _id: performance.id,
+        name: performance.name,
+        description: performance.description,
+        photo: performance.photo ?? undefined,
+        date: performance.date as unknown as Date,
+        venue: performance.venue ?? undefined,
+        price: performance.price ?? undefined,
+        showId: performance.showId ?? undefined,
+        createdAt: performance.createdAt as unknown as Date,
+        updatedAt: performance.updatedAt as unknown as Date,
+      },
     };
     
     return NextResponse.json(response);
@@ -42,13 +50,11 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await dbConnect();
     const { id } = await params;
     const body = await request.json();
-    
-    const updatedPerformance = await PerformanceModel.findByIdAndUpdate(
-      id,
-      {
+    const updatedPerformance = await prisma.performance.update({
+      where: { id },
+      data: {
         name: body.name,
         description: body.description,
         photo: body.photo,
@@ -56,8 +62,7 @@ export async function PUT(
         venue: body.venue,
         price: body.price,
       },
-      { new: true, runValidators: true }
-    );
+    });
     
     if (!updatedPerformance) {
       const errorResponse: ApiResponse = {
@@ -69,7 +74,18 @@ export async function PUT(
     
     const response: ApiResponse<Performance> = {
       success: true,
-      data: updatedPerformance.toObject(),
+      data: {
+        _id: updatedPerformance.id,
+        name: updatedPerformance.name,
+        description: updatedPerformance.description,
+        photo: updatedPerformance.photo ?? undefined,
+        date: updatedPerformance.date as unknown as Date,
+        venue: updatedPerformance.venue ?? undefined,
+        price: updatedPerformance.price ?? undefined,
+        showId: updatedPerformance.showId ?? undefined,
+        createdAt: updatedPerformance.createdAt as unknown as Date,
+        updatedAt: updatedPerformance.updatedAt as unknown as Date,
+      },
       message: 'Performance updated successfully',
     };
     
@@ -89,12 +105,9 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await dbConnect();
     const { id } = await params;
-    
-    const deletedPerformance = await PerformanceModel.findByIdAndDelete(id);
-    
-    if (!deletedPerformance) {
+  const deletedPerformance = await prisma.performance.delete({ where: { id } });
+  if (!deletedPerformance) {
       const errorResponse: ApiResponse = {
         success: false,
         error: 'Performance not found',

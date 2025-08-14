@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -123,8 +124,8 @@ export default function ShowsPage() {
                 <div>
                   <Label htmlFor="mainImageFile">Main Image (optional)</Label>
                   {newShow.mainImage && (
-                    <div className="mt-2 relative inline-block group">
-                      <img src={newShow.mainImage} alt="Main preview" className="h-32 w-auto rounded border object-cover" />
+                    <div className="mt-2 relative inline-block group h-32 w-48">
+                      <Image src={newShow.mainImage} alt="Main preview" fill sizes="(max-width: 768px) 192px, 192px" className="rounded border object-cover" />
                       <button
                         type="button"
                         onClick={() => setNewShow(prev => ({ ...prev, mainImage: '' }))}
@@ -194,8 +195,8 @@ export default function ShowsPage() {
                   {newShow.galleryImages.length > 0 && (
                     <div className="flex flex-wrap gap-3 mt-2">
                       {newShow.galleryImages.map((url, idx) => (
-                        <div key={idx} className="relative group">
-                          <img src={url} alt="Gallery" className="h-16 w-16 object-cover rounded border" />
+                        <div key={idx} className="relative group h-16 w-16">
+                          <Image src={url} alt="Gallery" fill sizes="64px" className="object-cover rounded border" />
                           <button
                             type="button"
                             onClick={() => setNewShow(prev => ({ ...prev, galleryImages: prev.galleryImages.filter((_, i) => i !== idx) }))}

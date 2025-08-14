@@ -2,6 +2,7 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState, useCallback } from 'react';
+import Image from 'next/image';
 import { Show, Performance } from '@/types';
 import { AdminNav } from '@/components/ui/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -169,8 +170,8 @@ export default function ShowDetailsPage() {
 
         <Card className="mb-8 overflow-hidden">
           {show.mainImage && (
-            <div className="w-full h-56 bg-gray-100 border-b overflow-hidden">
-              <img src={show.mainImage} alt={show.name} className="w-full h-full object-cover" />
+            <div className="w-full h-56 bg-gray-100 border-b overflow-hidden relative">
+              <Image src={show.mainImage} alt={show.name} fill priority sizes="100vw" className="object-cover" />
             </div>
           )}
           <CardHeader>
@@ -184,7 +185,9 @@ export default function ShowDetailsPage() {
                 <p className="text-sm font-medium mb-2">Gallery</p>
                 <div className="flex flex-wrap gap-3">
                   {show.galleryImages.map((url, idx) => (
-                    <img key={idx} src={url} alt="Gallery" className="h-16 w-16 object-cover rounded border" />
+                    <div key={idx} className="relative h-16 w-16">
+                      <Image src={url} alt="Gallery" fill sizes="64px" className="object-cover rounded border" />
+                    </div>
                   ))}
                 </div>
               </div>
@@ -309,8 +312,8 @@ export default function ShowDetailsPage() {
               <div>
                 <Label htmlFor="editMainImageFile">Main Image</Label>
                 {editShow.mainImage && (
-                  <div className="mt-2 relative inline-block group">
-                    <img src={editShow.mainImage} alt="Main" className="h-28 w-auto rounded border object-cover" />
+                  <div className="mt-2 relative inline-block group h-28 w-44">
+                    <Image src={editShow.mainImage} alt="Main" fill sizes="(max-width: 768px) 176px, 176px" className="rounded border object-cover" />
                     <button
                       type="button"
                       onClick={() => setEditShow(prev => ({ ...prev, mainImage: '' }))}
@@ -380,8 +383,8 @@ export default function ShowDetailsPage() {
                 {editShow.galleryImages.length > 0 && (
                   <div className="flex flex-wrap gap-3 mt-2">
                     {editShow.galleryImages.map((url, idx) => (
-                      <div key={idx} className="relative group">
-                        <img src={url} alt="Gallery" className="h-16 w-16 object-cover rounded border" />
+                      <div key={idx} className="relative group h-16 w-16">
+                        <Image src={url} alt="Gallery" fill sizes="64px" className="object-cover rounded border" />
                         <button
                           type="button"
                           onClick={() => setEditShow(prev => ({ ...prev, galleryImages: prev.galleryImages.filter((_, i) => i !== idx) }))}

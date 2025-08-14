@@ -277,8 +277,8 @@ export default function ShowsPage() {
             {shows.map(show => (
               <Card key={show._id} className="hover:shadow overflow-hidden">
                 {show.mainImage && (
-                  <div className="h-40 w-full overflow-hidden border-b bg-gray-100">
-                    <img src={show.mainImage} alt={show.name} className="w-full h-full object-cover" />
+                  <div className="h-40 w-full overflow-hidden border-b bg-gray-100 relative">
+                    <Image src={show.mainImage} alt={show.name} fill sizes="100vw" className="object-cover" />
                   </div>
                 )}
                 <CardHeader>

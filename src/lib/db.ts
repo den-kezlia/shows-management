@@ -1,10 +1,7 @@
 import mongoose from 'mongoose';
 
+// Read once at module load; validation happens in dbConnect to avoid build-time crashes
 const MONGODB_URI = process.env.MONGODB_URI;
-
-if (!MONGODB_URI && process.env.NODE_ENV !== 'development') {
-  throw new Error('Please define the MONGODB_URI environment variable inside .env.local');
-}
 
 interface GlobalMongoose {
   conn: typeof mongoose | null;
@@ -24,6 +21,7 @@ if (!cached) {
 
 async function dbConnect(): Promise<typeof mongoose> {
   if (!MONGODB_URI) {
+    // Defer throwing until connect time so builds don't fail when envs are not injected
     throw new Error('MongoDB URI is not defined');
   }
 

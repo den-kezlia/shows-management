@@ -29,8 +29,14 @@ export async function PUT(
     await dbConnect();
     const { id } = await params;
     const body = await request.json();
-    const { name, description, performanceIds, mainImage, galleryImages } = body;
-    const update: any = { name, description };
+    const { name, description, performanceIds, mainImage, galleryImages } = body as {
+      name?: string;
+      description?: string;
+      performanceIds?: string[];
+      mainImage?: string;
+      galleryImages?: string[];
+    };
+    const update: Partial<Show & { performanceIds: string[] }> = { name: name as string, description: description as string };
     if (Array.isArray(performanceIds)) {
       update.performanceIds = performanceIds;
     }

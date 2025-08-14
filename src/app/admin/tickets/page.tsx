@@ -35,6 +35,8 @@ import { AdminNav } from "@/components/ui/navigation";
 import { Performance, Ticket } from "@/types";
 import { Trash2, Edit } from "lucide-react";
 
+type TicketStatus = 'pending' | 'paid' | 'approved';
+
 export default function AdminTickets() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [performances, setPerformances] = useState<Performance[]>([]);
@@ -49,7 +51,7 @@ export default function AdminTickets() {
     customerPhoneNumber: "",
     customerName: "",
   referenceName: "",
-  status: 'pending',
+  status: 'pending' as TicketStatus,
   });
   const [editTicket, setEditTicket] = useState({
     performanceId: "",
@@ -58,7 +60,7 @@ export default function AdminTickets() {
     customerPhoneNumber: "",
     customerName: "",
   referenceName: "",
-  status: 'paid',
+  status: 'paid' as TicketStatus,
   });
   const [adminUser, setAdminUser] = useState<{ username: string; email: string } | null>(null);
   const [sortBy, setSortBy] = useState<'performance' | 'date' | 'customer' | 'status'>('performance');
@@ -402,7 +404,7 @@ export default function AdminTickets() {
                   <Label htmlFor="status">Status</Label>
                   <Select
                     value={newTicket.status}
-                    onValueChange={(value) => setNewTicket({ ...newTicket, status: value as any })}
+                    onValueChange={(value) => setNewTicket({ ...newTicket, status: value as TicketStatus })}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -650,7 +652,7 @@ export default function AdminTickets() {
                 <Label htmlFor="editStatus">Status</Label>
                 <Select
                   value={editTicket.status}
-                  onValueChange={(value) => setEditTicket({ ...editTicket, status: value as any })}
+                  onValueChange={(value) => setEditTicket({ ...editTicket, status: value as TicketStatus })}
                 >
                   <SelectTrigger>
                     <SelectValue />

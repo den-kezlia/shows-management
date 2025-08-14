@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
   await dbConnect();
   const formData = await req.formData();
 
-    const files: File[] = [];
+  const files: File[] = [];
     for (const [, value] of formData.entries()) {
       if (value instanceof File) files.push(value);
     }
@@ -33,7 +33,8 @@ export async function POST(req: NextRequest) {
       if (!file.type?.startsWith('image/')) {
         return NextResponse.json({ success: false, error: 'Only image files are allowed' }, { status: 400 });
       }
-      if ((file as any).size && (file as any).size > MAX_SIZE_BYTES) {
+      // Size check using File.size (available in web File/Blob)
+      if (typeof file.size === 'number' && file.size > MAX_SIZE_BYTES) {
         return NextResponse.json({ success: false, error: 'File too large (max 5MB)' }, { status: 400 });
       }
       const arrayBuffer = await file.arrayBuffer();

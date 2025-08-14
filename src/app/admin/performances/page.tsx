@@ -80,8 +80,8 @@ export default function AdminPerformances() {
       const res = await fetch('/api/shows');
       const data = await res.json();
       if (data.success) setShows(data.data);
-    } catch (e) {
-      console.error('Error loading shows', e);
+    } catch {
+      console.error('Error loading shows');
     }
   };
 
@@ -135,7 +135,7 @@ export default function AdminPerformances() {
       } else {
         setDeleteTicketCount(0);
       }
-    } catch (e) {
+    } catch {
       setDeleteTicketCount(0);
     }
   };
@@ -195,7 +195,7 @@ export default function AdminPerformances() {
       time: timeStr,
       venue: performance.venue || '',
       price: performance.price ? performance.price.toString() : '0',
-      showId: (performance as any).showId || ''
+  showId: (performance as unknown as { showId?: string }).showId || ''
     });
     setIsEditDialogOpen(true);
   };

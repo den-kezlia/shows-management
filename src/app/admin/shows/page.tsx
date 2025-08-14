@@ -47,8 +47,8 @@ export default function ShowsPage() {
       const performancesData = await performancesRes.json();
       if (showsData.success) setShows(showsData.data);
       if (performancesData.success) setPerformances(performancesData.data);
-    } catch (e) {
-      console.error(e);
+    } catch {
+      // noop
     } finally {
       setIsLoading(false);
     }
@@ -78,7 +78,7 @@ export default function ShowsPage() {
       } else {
         toast.error(data.error || 'Failed to create show');
       }
-    } catch (e) {
+    } catch {
       toast.error('Failed to create show');
     }
   };
@@ -141,8 +141,9 @@ export default function ShowsPage() {
                         const [url] = await uploadFiles(e.target.files);
                         setNewShow(prev => ({ ...prev, mainImage: url }));
                         toast.success('Main image uploaded');
-                      } catch (err:any) {
-                        toast.error(err.message || 'Failed to upload main image');
+                      } catch (err) {
+                        const msg = err instanceof Error ? err.message : 'Failed to upload main image';
+                        toast.error(msg);
                       } finally {
                         setIsUploadingMain(false);
                         e.currentTarget.value = '';
@@ -180,8 +181,9 @@ export default function ShowsPage() {
                         const urls = await uploadFiles(e.target.files);
                         setNewShow(prev => ({ ...prev, galleryImages: [...prev.galleryImages, ...urls] }));
                         toast.success('Gallery images uploaded');
-                      } catch (err:any) {
-                        toast.error(err.message || 'Failed to upload gallery images');
+                      } catch (err) {
+                        const msg = err instanceof Error ? err.message : 'Failed to upload gallery images';
+                        toast.error(msg);
                       } finally {
                         setIsUploadingGallery(false);
                         e.currentTarget.value = '';

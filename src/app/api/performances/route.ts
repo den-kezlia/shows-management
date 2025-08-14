@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
   try {
     await dbConnect();
     const showId = request.nextUrl.searchParams.get('showId');
-    const query: any = {};
+  const query: Record<string, unknown> = {};
     if (showId) query.showId = showId;
     const performances = await PerformanceModel.find(query).sort({ date: 1 });
     

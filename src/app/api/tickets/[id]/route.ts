@@ -5,11 +5,12 @@ import { ApiResponse, Ticket } from '@/types';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await dbConnect();
-    const ticket = await TicketModel.findById(params.id).populate('performanceId');
+    const { id } = await params;
+    const ticket = await TicketModel.findById(id).populate('performanceId');
     
     if (!ticket) {
       const errorResponse: ApiResponse = {
@@ -37,10 +38,11 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await dbConnect();
+    const { id } = await params;
     const body = await request.json();
     
   const { performanceId, placeRow, placeNumber, customerPhoneNumber, customerName, referenceName, status } = body;
@@ -55,7 +57,7 @@ export async function PUT(
     }
     
     const ticket = await TicketModel.findByIdAndUpdate(
-      params.id,
+      id,
       {
         performanceId,
         placeRow: parseInt(placeRow) || 1,
@@ -96,12 +98,12 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await dbConnect();
-    
-    const ticket = await TicketModel.findByIdAndDelete(params.id);
+    const { id } = await params;
+    const ticket = await TicketModel.findByIdAndDelete(id);
     
     if (!ticket) {
       const errorResponse: ApiResponse = {

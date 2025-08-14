@@ -366,7 +366,7 @@ export default function PerformanceTickets() {
                     <Label htmlFor="status">Status</Label>
                     <Select
                       value={newTicket.status}
-                      onValueChange={(value) => setNewTicket({ ...newTicket, status: value as any })}
+                      onValueChange={(value) => setNewTicket({ ...newTicket, status: value as 'pending' | 'paid' | 'approved' })}
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -663,7 +663,7 @@ export default function PerformanceTickets() {
                 <Label htmlFor="editStatus">Status</Label>
                 <Select
                   value={editTicket.status}
-                  onValueChange={(value) => setEditTicket({ ...editTicket, status: value as any })}
+                  onValueChange={(value) => setEditTicket({ ...editTicket, status: value as 'pending' | 'paid' | 'approved' })}
                 >
                   <SelectTrigger>
                     <SelectValue />

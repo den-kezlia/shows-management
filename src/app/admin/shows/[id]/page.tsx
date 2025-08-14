@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Show, Performance } from '@/types';
 import { AdminNav } from '@/components/ui/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -42,10 +42,9 @@ export default function ShowDetailsPage() {
       return;
     }
     setAdminUser(JSON.parse(user));
-    if (showId) loadData();
-  }, [router, showId]);
+  }, [router]);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       const [showRes, perfRes, allPerfRes] = await Promise.all([
         fetch(`/api/shows/${showId}`),
@@ -55,7 +54,7 @@ export default function ShowDetailsPage() {
       const showData = await showRes.json();
       const perfData = await perfRes.json();
       const allPerfData = await allPerfRes.json();
-  if (showData.success) setShow(showData.data);
+      if (showData.success) setShow(showData.data);
       if (perfData.success) setPerformances(perfData.data);
       if (allPerfData.success) setAllPerformances(allPerfData.data);
     } catch (e) {
@@ -63,7 +62,13 @@ export default function ShowDetailsPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [showId]);
+
+  useEffect(() => {
+    if (showId) loadData();
+  }, [showId, loadData]);
+
+  // loadData is defined above using useCallback
 
   const openEditShow = () => {
     if (!show) return;
@@ -92,7 +97,7 @@ export default function ShowDetailsPage() {
           galleryImages: editShow.galleryImages,
         })
       });
-      const data = await res.json();
+  const data = await res.json();
       if (data.success) {
         setShow(data.data);
         toast.success('Show updated');
@@ -102,7 +107,7 @@ export default function ShowDetailsPage() {
       } else {
         toast.error(data.error || 'Failed to update show');
       }
-    } catch (err) {
+  } catch {
       toast.error('Failed to update show');
     }
   };
@@ -129,7 +134,7 @@ export default function ShowDetailsPage() {
       } else {
         toast.error(data.error || 'Failed to create performance');
       }
-    } catch (e) {
+  } catch {
       toast.error('Failed to create performance');
     }
   };
@@ -322,8 +327,9 @@ export default function ShowDetailsPage() {
                       const [url] = await uploadFiles(e.target.files);
                       setEditShow(prev => ({ ...prev, mainImage: url }));
                       toast.success('Main image uploaded');
-                    } catch (err:any) {
-                      toast.error(err.message || 'Failed to upload main image');
+                    } catch (err) {
+                      const msg = err instanceof Error ? err.message : 'Failed to upload main image';
+                      toast.error(msg);
                     } finally {
                       setIsUploadingMain(false);
                       e.currentTarget.value = '';
@@ -361,8 +367,9 @@ export default function ShowDetailsPage() {
                       const urls = await uploadFiles(e.target.files);
                       setEditShow(prev => ({ ...prev, galleryImages: [...prev.galleryImages, ...urls] }));
                       toast.success('Gallery images uploaded');
-                    } catch (err:any) {
-                      toast.error(err.message || 'Failed to upload gallery images');
+                    } catch (err) {
+                      const msg = err instanceof Error ? err.message : 'Failed to upload gallery images';
+                      toast.error(msg);
                     } finally {
                       setIsUploadingGallery(false);
                       e.currentTarget.value = '';

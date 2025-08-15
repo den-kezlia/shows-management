@@ -215,11 +215,15 @@ export default function AdminPerformances() {
     <div className="min-h-screen bg-background">
       <AdminNav adminUser={adminUser} onLogout={handleLogout} />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-8">
+          {/* Mobile action above title */}
+          <div className="sm:hidden">
+            <Button onClick={() => setIsCreateDialogOpen(true)}>Create Performance</Button>
+          </div>
           <h1 className="text-2xl font-bold text-foreground">🎪 Manage Performances</h1>
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
-              <Button>Create Performance</Button>
+              <Button className="hidden sm:inline-flex">Create Performance</Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>

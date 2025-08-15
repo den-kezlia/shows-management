@@ -156,36 +156,41 @@ export default function ShowDetailsPage() {
     <div className="min-h-screen bg-background">
       <AdminNav adminUser={adminUser} onLogout={() => { localStorage.clear(); router.push('/admin'); }} />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-6">
+          {/* Mobile actions above title */}
+          <div className="flex gap-2 sm:hidden">
+            <Link href="/admin/shows"><Button variant="outline" size="sm">← Back</Button></Link>
+            <Button size="sm" onClick={() => setIsCreatePerformanceOpen(true)}>Add Performance</Button>
+          </div>
           <div>
             <h1 className="text-2xl font-bold">🎞️ {show.name}</h1>
             <p className="text-sm text-muted-foreground mt-1">{show.description}</p>
           </div>
-          <div className="flex gap-2">
-            <Link href="/admin/shows"><Button variant="outline" size="sm">← Back</Button></Link>
+          <div className="flex flex-wrap gap-2 sm:flex-nowrap sm:justify-end">
+            <Link href="/admin/shows" className="hidden sm:block"><Button variant="outline" size="sm">← Back</Button></Link>
             <Button size="sm" variant="outline" onClick={openEditShow}>Edit Show</Button>
-            <Button size="sm" onClick={() => setIsCreatePerformanceOpen(true)}>Add Performance</Button>
+            <Button className="hidden sm:inline-flex" size="sm" onClick={() => setIsCreatePerformanceOpen(true)}>Add Performance</Button>
           </div>
         </div>
 
         <Card className="mb-8 overflow-hidden">
           {show.mainImage && (
-            <div className="w-full h-56 bg-muted border-b overflow-hidden relative">
+            <div className="w-full h-40 sm:h-56 bg-muted border-b overflow-hidden relative">
               <Image src={show.mainImage} alt={show.name} fill priority sizes="100vw" className="object-cover" />
             </div>
           )}
-          <CardHeader>
+          <CardHeader className="p-4 sm:p-6">
             <CardTitle>Show Information</CardTitle>
             <CardDescription>Overview of this show and its performances.</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-4 sm:p-6">
             <p className="text-sm"><span className="font-medium">Total Performances:</span> {performances.length}</p>
             {show.galleryImages && show.galleryImages.length > 0 && (
               <div className="mt-4">
                 <p className="text-sm font-medium mb-2">Gallery</p>
-                <div className="flex flex-wrap gap-3">
+                <div className="flex flex-wrap gap-2 sm:gap-3">
                   {show.galleryImages.map((url, idx) => (
-                    <div key={idx} className="relative h-16 w-16">
+                    <div key={idx} className="relative h-14 w-14 sm:h-16 sm:w-16">
                       <Image src={url} alt="Gallery" fill sizes="64px" className="object-cover rounded border" />
                     </div>
                   ))}
@@ -210,8 +215,8 @@ export default function ShowDetailsPage() {
             <div className="grid gap-6">
               {performances.map((performance) => (
                 <Card key={performance._id} className="hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                    <div className="flex justify-between items-start">
+                  <CardHeader className="p-4 sm:p-6">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
                       <div>
                         <CardTitle className="text-xl flex items-center gap-2">
                           {performance.name}
@@ -230,7 +235,7 @@ export default function ShowDetailsPage() {
                       </Link>
                     </div>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="p-4 sm:p-6">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                       <div>
                         <span className="font-medium">📅 Date:</span>
@@ -269,7 +274,7 @@ export default function ShowDetailsPage() {
                 <Label htmlFor="perfDescription">Description</Label>
                 <Textarea id="perfDescription" value={newPerformance.description} onChange={(e) => setNewPerformance({ ...newPerformance, description: e.target.value })} required />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="perfDate">Date</Label>
                   <Input id="perfDate" type="date" value={newPerformance.date} onChange={(e) => setNewPerformance({ ...newPerformance, date: e.target.value })} required />

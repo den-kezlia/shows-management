@@ -264,9 +264,15 @@ export default function PerformanceTickets() {
         onLogout={logout}
       />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex justify-between items-center mb-6">
-          <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-6">
+          {/* Mobile back above title */}
+          <div className="sm:hidden">
             <Link href="/admin/performances">
+              <Button variant="ghost" size="sm">← Back to Performances</Button>
+            </Link>
+          </div>
+          <div className="flex items-center gap-4">
+            <Link href="/admin/performances" className="hidden sm:block">
               <Button variant="ghost" size="sm">← Back to Performances</Button>
             </Link>
             <div>
@@ -277,7 +283,6 @@ export default function PerformanceTickets() {
             </div>
           </div>
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-            <Button onClick={() => setIsCreateDialogOpen(true)}>Create Ticket</Button>
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
                 <DialogTitle>Create Ticket</DialogTitle>
@@ -475,15 +480,16 @@ export default function PerformanceTickets() {
           </Card>
         ) : (
           <div className="space-y-4">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
               <h2 className="text-lg font-semibold">Tickets ({totalTickets})</h2>
-              <div className="flex gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <Badge variant="default" className="bg-green-500">
                   {visitedTickets} validated
                 </Badge>
                 <Badge variant="outline">
                   {pendingTickets} pending
                 </Badge>
+                <Button variant="outline" onClick={() => setIsCreateDialogOpen(true)} className="ml-auto sm:ml-0">Create Ticket</Button>
               </div>
             </div>
             <Separator />

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -52,7 +52,6 @@ export default function PerformanceTickets() {
   useEffect(() => {
     console.log("Dialog state changed:", isCreateDialogOpen);
   }, [isCreateDialogOpen]);
-  const router = useRouter();
   const params = useParams();
   const performanceId = params.id as string;
 
@@ -260,7 +259,10 @@ export default function PerformanceTickets() {
 
   return (
     <div className="min-h-screen bg-background">
-      <AdminNav adminUser={adminUser as any} onLogout={logout} />
+      <AdminNav
+        adminUser={adminUser ? { username: adminUser.username, email: adminUser.email } : null}
+        onLogout={logout}
+      />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-4">

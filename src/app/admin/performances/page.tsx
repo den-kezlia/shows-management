@@ -77,7 +77,7 @@ export default function AdminPerformances() {
       const data = await res.json();
       if (data.success) setShows(data.data);
     } catch (e) {
-      console.error("Error loading shows");
+      console.error("Error loading shows:", e);
     }
   };
 

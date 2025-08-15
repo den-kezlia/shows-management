@@ -7,12 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { LoadingScreen } from "@/components/ui/spinner";
 import { AdminNav } from "@/components/ui/navigation";
-import { Performance, Ticket, Show } from "@/types";
+import { Performance, Show } from "@/types";
 
 export default function AdminDashboard() {
   const [performances, setPerformances] = useState<Performance[]>([]);
   const [shows, setShows] = useState<Show[]>([]);
-  const [tickets, setTickets] = useState<Ticket[]>([]);
+  // Tickets list is not displayed on the simplified dashboard; omit state to keep lints clean.
   const [isLoading, setIsLoading] = useState(true);
   const [adminUser, setAdminUser] = useState<{ username: string; email: string } | null>(null);
   const router = useRouter();
@@ -55,15 +55,14 @@ export default function AdminDashboard() {
 
   const loadDashboardData = async () => {
     try {
-      const [showsRes, performancesRes, ticketsRes] = await Promise.all([
+  const [showsRes, performancesRes] = await Promise.all([
         fetch("/api/shows"),
         fetch("/api/performances"),
-        fetch("/api/tickets"),
       ]);
 
       const showsData = await showsRes.json();
       const performancesData = await performancesRes.json();
-      const ticketsData = await ticketsRes.json();
+  // no tickets on dashboard summary currently
 
       if (showsData.success) {
         setShows(showsData.data);
@@ -71,9 +70,7 @@ export default function AdminDashboard() {
       if (performancesData.success) {
         setPerformances(performancesData.data);
       }
-      if (ticketsData.success) {
-        setTickets(ticketsData.data);
-      }
+  // no-op
     } catch (error) {
       console.error("Error loading dashboard data:", error);
     } finally {

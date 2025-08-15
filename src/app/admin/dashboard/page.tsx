@@ -93,7 +93,7 @@ export default function AdminDashboard() {
   const upcomingPerformances = performances.filter(p => new Date(p.date) > new Date()).length;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+  <div className="min-h-screen bg-background">
       <AdminNav adminUser={adminUser} onLogout={handleLogout} />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome Section */}
@@ -302,7 +302,7 @@ export default function AdminDashboard() {
                         <TableCell className="font-medium">
                           <div>
                             <div className="font-semibold">{performance.name}</div>
-                            <div className="text-sm text-gray-500 truncate max-w-xs">
+                            <div className="text-sm text-muted-foreground truncate max-w-xs">
                               {performance.description}
                             </div>
                           </div>
@@ -311,7 +311,7 @@ export default function AdminDashboard() {
                           <div className="text-sm">
                             {formatDateUTC(performance.date)}
                           </div>
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs text-muted-foreground">
                             {formatTimeUTC(performance.date)}
                           </div>
                         </TableCell>

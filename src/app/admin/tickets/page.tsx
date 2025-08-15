@@ -50,8 +50,8 @@ export default function AdminTickets() {
     placeNumber: "",
     customerPhoneNumber: "",
     customerName: "",
-  referenceName: "",
-  status: 'pending' as TicketStatus,
+    referenceName: "",
+    status: 'pending' as TicketStatus,
   });
   const [editTicket, setEditTicket] = useState({
     performanceId: "",
@@ -59,8 +59,8 @@ export default function AdminTickets() {
     placeNumber: "",
     customerPhoneNumber: "",
     customerName: "",
-  referenceName: "",
-  status: 'paid' as TicketStatus,
+    referenceName: "",
+    status: 'paid' as TicketStatus,
   });
   const [adminUser, setAdminUser] = useState<{ username: string; email: string } | null>(null);
   const [sortBy, setSortBy] = useState<'performance' | 'date' | 'customer' | 'status'>('performance');
@@ -296,19 +296,14 @@ export default function AdminTickets() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <AdminNav adminUser={adminUser} onLogout={handleLogout} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">
-            🎫 Manage Tickets
-          </h1>
+          <h1 className="text-2xl font-bold text-foreground">🎫 Manage Tickets</h1>
 
-          <Dialog
-            open={isCreateDialogOpen}
-            onOpenChange={setIsCreateDialogOpen}
-          >
+          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
               <Button>Create New Ticket</Button>
             </DialogTrigger>
@@ -321,9 +316,7 @@ export default function AdminTickets() {
                   <Label htmlFor="performance">Performance</Label>
                   <Select
                     value={newTicket.performanceId}
-                    onValueChange={(value) =>
-                      setNewTicket({ ...newTicket, performanceId: value })
-                    }
+                    onValueChange={(value) => setNewTicket({ ...newTicket, performanceId: value })}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select performance" />
@@ -343,9 +336,7 @@ export default function AdminTickets() {
                   <Input
                     id="customerName"
                     value={newTicket.customerName}
-                    onChange={(e) =>
-                      setNewTicket({ ...newTicket, customerName: e.target.value })
-                    }
+                    onChange={(e) => setNewTicket({ ...newTicket, customerName: e.target.value })}
                     placeholder="Enter customer name"
                     required
                   />
@@ -356,9 +347,7 @@ export default function AdminTickets() {
                   <Input
                     id="customerPhoneNumber"
                     value={newTicket.customerPhoneNumber}
-                    onChange={(e) =>
-                      setNewTicket({ ...newTicket, customerPhoneNumber: e.target.value })
-                    }
+                    onChange={(e) => setNewTicket({ ...newTicket, customerPhoneNumber: e.target.value })}
                     placeholder="Enter customer phone number"
                     required
                   />
@@ -370,9 +359,7 @@ export default function AdminTickets() {
                     <Input
                       id="placeRow"
                       value={newTicket.placeRow}
-                      onChange={(e) =>
-                        setNewTicket({ ...newTicket, placeRow: e.target.value })
-                      }
+                      onChange={(e) => setNewTicket({ ...newTicket, placeRow: e.target.value })}
                       placeholder="Enter row"
                     />
                   </div>
@@ -381,9 +368,7 @@ export default function AdminTickets() {
                     <Input
                       id="placeNumber"
                       value={newTicket.placeNumber}
-                      onChange={(e) =>
-                        setNewTicket({ ...newTicket, placeNumber: e.target.value })
-                      }
+                      onChange={(e) => setNewTicket({ ...newTicket, placeNumber: e.target.value })}
                       placeholder="Enter seat number"
                     />
                   </div>
@@ -394,9 +379,7 @@ export default function AdminTickets() {
                   <Input
                     id="referenceName"
                     value={newTicket.referenceName}
-                    onChange={(e) =>
-                      setNewTicket({ ...newTicket, referenceName: e.target.value })
-                    }
+                    onChange={(e) => setNewTicket({ ...newTicket, referenceName: e.target.value })}
                     placeholder="Enter reference name"
                   />
                 </div>
@@ -417,9 +400,7 @@ export default function AdminTickets() {
                   </Select>
                 </div>
 
-                <Button type="submit" className="w-full">
-                  Create Ticket
-                </Button>
+                <Button type="submit" className="w-full">Create Ticket</Button>
               </form>
             </DialogContent>
           </Dialog>
@@ -442,11 +423,11 @@ export default function AdminTickets() {
         ) : (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-muted-foreground">
                 📋 {tickets.length} ticket{tickets.length !== 1 ? 's' : ''} across {Object.keys(getGroupedTickets()).length} performance{Object.keys(getGroupedTickets()).length !== 1 ? 's' : ''}
               </p>
               <div className="flex items-center gap-2">
-                <Label htmlFor="sortBy" className="text-sm text-gray-600">Sort within groups:</Label>
+                <Label htmlFor="sortBy" className="text-sm text-muted-foreground">Sort within groups:</Label>
                 <Select value={sortBy} onValueChange={(value: 'performance' | 'date' | 'customer' | 'status') => setSortBy(value)}>
                   <SelectTrigger className="w-40">
                     <SelectValue />
@@ -467,24 +448,24 @@ export default function AdminTickets() {
               
               return (
                 <div key={performanceName} className="space-y-4">
-                  <div className="sticky top-0 z-10 flex items-center justify-between py-3 px-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200 shadow-sm">
+                  <div className="sticky top-0 z-10 flex items-center justify-between py-3 px-4 bg-muted rounded-lg border shadow-xs">
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                      <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
                         🎭 {performanceName}
                       </h3>
-                      <p className="text-sm text-gray-600 mt-1">
+                      <p className="text-sm text-muted-foreground mt-1">
                         {performanceTickets.length} ticket{performanceTickets.length !== 1 ? 's' : ''} • 
                         <span className="text-green-600 font-medium ml-1">✅ {validatedCount} validated</span> • 
                         <span className="text-yellow-600 font-medium ml-1">⏳ {pendingCount} pending</span>
                       </p>
                     </div>
                     <div className="text-right">
-                      <div className="text-2xl font-bold text-gray-700">{performanceTickets.length}</div>
-                      <div className="text-xs text-gray-500 uppercase tracking-wide">tickets</div>
+                      <div className="text-2xl font-bold text-foreground/80">{performanceTickets.length}</div>
+                      <div className="text-xs text-muted-foreground uppercase tracking-wide">tickets</div>
                     </div>
                   </div>
                   
-                  <div className="grid gap-3 pl-4 border-l-2 border-blue-100">
+                  <div className="grid gap-3 pl-4 border-l-2 border-border">
                     {performanceTickets.map((ticket) => (
               <Card key={ticket._id} className="hover:shadow-lg transition-shadow">
                 <CardHeader>
@@ -532,17 +513,17 @@ export default function AdminTickets() {
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
                     <div>
                       <span className="font-medium">💺 Seat:</span>
-                      <p className="text-gray-600">
+                      <p className="text-muted-foreground">
                         Row {ticket.placeRow}, Seat {ticket.placeNumber}
                       </p>
                     </div>
                     <div>
                       <span className="font-medium">📧 Reference:</span>
-                      <p className="text-gray-600">{ticket.referenceName}</p>
+                      <p className="text-muted-foreground">{ticket.referenceName}</p>
                     </div>
                     <div>
                       <span className="font-medium">📅 Created:</span>
-                      <p className="text-gray-600">
+                      <p className="text-muted-foreground">
                         {ticket.createdAt ? new Date(ticket.createdAt).toLocaleDateString() : 'N/A'}
                       </p>
                     </div>

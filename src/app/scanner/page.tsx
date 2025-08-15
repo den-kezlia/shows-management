@@ -262,8 +262,8 @@ export default function QRScannerPage() {
                 <div className="text-center">
                   {!isScanning ? (
                     <div>
-                      <div className="bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg p-8 mb-4">
-                        <p className="text-gray-500">
+                      <div className="bg-muted border-2 border-dashed border-border rounded-lg p-8 mb-4">
+                        <p className="text-muted-foreground">
                           📷 Use your device camera to scan QR codes
                           <br />
                           Works best in good lighting conditions
@@ -403,45 +403,45 @@ export default function QRScannerPage() {
               <CardContent>
                 <div className="space-y-4">
                   {/* Performance Info */}
-                  <div className="bg-white p-4 rounded-lg">
+                  <div className="bg-card text-card-foreground p-4 rounded-lg">
                     <h3 className="font-semibold text-lg mb-2">
                       {validationResult.performance.name}
                     </h3>
-                    <p className="text-gray-600 mb-2">
+                    <p className="text-muted-foreground mb-2">
                       {validationResult.performance.description}
                     </p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-muted-foreground">
                       📅 {new Date(validationResult.performance.date).toLocaleDateString()} at{" "}
                       {new Date(validationResult.performance.date).toLocaleTimeString()}
                     </p>
                   </div>
 
                   {/* Ticket Info */}
-                  <div className="bg-white p-4 rounded-lg">
+                  <div className="bg-card text-card-foreground p-4 rounded-lg">
                     <h4 className="font-medium mb-2">Ticket Details</h4>
                     <div className="grid grid-cols-2 gap-2 text-sm">
                       <div>
-                        <span className="text-gray-500">Customer:</span>
+                        <span className="text-muted-foreground">Customer:</span>
                         <p className="font-medium">{validationResult.ticket.customerName}</p>
                       </div>
                       <div>
-                        <span className="text-gray-500">Seat:</span>
+                        <span className="text-muted-foreground">Seat:</span>
                         <p className="font-medium">
                           Row {validationResult.ticket.placeRow}, 
                           Seat {validationResult.ticket.placeNumber}
                         </p>
                       </div>
                       <div>
-                        <span className="text-gray-500">Reference:</span>
+                        <span className="text-muted-foreground">Reference:</span>
                         <p className="font-medium">{validationResult.ticket.referenceName}</p>
                       </div>
                       <div>
-                        <span className="text-gray-500">Phone:</span>
+                        <span className="text-muted-foreground">Phone:</span>
                         <p className="font-medium">{validationResult.ticket.customerPhoneNumber}</p>
                       </div>
                       {validationResult.ticket.visitedAt && (
                         <div className="col-span-2">
-                          <span className="text-gray-500">Visited At:</span>
+                          <span className="text-muted-foreground">Visited At:</span>
                           <p className="font-medium">
                             {new Date(validationResult.ticket.visitedAt).toLocaleString()}
                           </p>
@@ -449,7 +449,7 @@ export default function QRScannerPage() {
                       )}
                       {validationResult.ticket.approvedAt && (
                         <div className="col-span-2">
-                          <span className="text-gray-500">Approved At:</span>
+                          <span className="text-muted-foreground">Approved At:</span>
                           <p className="font-medium">
                             {new Date(validationResult.ticket.approvedAt).toLocaleString()}
                           </p>

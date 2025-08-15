@@ -28,12 +28,12 @@ export function AdminNav({ adminUser, onLogout }: AdminNavProps) {
   const pathname = usePathname();
 
   return (
-    <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
+  <header className="bg-background border-b border-border sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center gap-6">
             <Link href="/" className="flex items-center gap-2">
-              <span className="text-xl font-bold text-gray-900">🎭 Tickets Agent</span>
+              <span className="text-xl font-bold text-foreground">🎭 Tickets Agent</span>
             </Link>
             <nav className="hidden md:flex items-center gap-1">
               {adminNavItems.map((item) => (
@@ -59,7 +59,7 @@ export function AdminNav({ adminUser, onLogout }: AdminNavProps) {
           <div className="flex items-center gap-4">
             {adminUser && (
               <div className="hidden sm:flex items-center gap-2">
-                <span className="text-sm text-gray-600">
+                <span className="text-sm text-muted-foreground">
                   Welcome, <span className="font-medium">{adminUser.username}</span>
                 </span>
               </div>
@@ -83,11 +83,11 @@ export function AdminNav({ adminUser, onLogout }: AdminNavProps) {
 
 export function PublicNav() {
   return (
-    <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
+  <header className="bg-background border-b border-border sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <Link href="/" className="flex items-center gap-2">
-            <span className="text-xl font-bold text-gray-900">🎭 Tickets Agent</span>
+            <span className="text-xl font-bold text-foreground">🎭 Tickets Agent</span>
           </Link>
           
           <div className="flex items-center gap-2">

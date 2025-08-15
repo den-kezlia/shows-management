@@ -153,13 +153,13 @@ export default function ShowDetailsPage() {
   if (!show) return <div className="min-h-screen flex items-center justify-center">Show not found</div>;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <AdminNav adminUser={adminUser} onLogout={() => { localStorage.clear(); router.push('/admin'); }} />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-  <div className="flex justify-between items-center mb-6">
+        <div className="flex justify-between items-center mb-6">
           <div>
             <h1 className="text-2xl font-bold">🎞️ {show.name}</h1>
-            <p className="text-sm text-gray-600 mt-1">{show.description}</p>
+            <p className="text-sm text-muted-foreground mt-1">{show.description}</p>
           </div>
           <div className="flex gap-2">
             <Link href="/admin/shows"><Button variant="outline" size="sm">← Back</Button></Link>
@@ -170,7 +170,7 @@ export default function ShowDetailsPage() {
 
         <Card className="mb-8 overflow-hidden">
           {show.mainImage && (
-            <div className="w-full h-56 bg-gray-100 border-b overflow-hidden relative">
+            <div className="w-full h-56 bg-muted border-b overflow-hidden relative">
               <Image src={show.mainImage} alt={show.name} fill priority sizes="100vw" className="object-cover" />
             </div>
           )}
@@ -208,7 +208,7 @@ export default function ShowDetailsPage() {
             </Card>
           ) : (
             <div className="grid gap-6">
-              {performances.map(performance => (
+              {performances.map((performance) => (
                 <Card key={performance._id} className="hover:shadow-lg transition-shadow">
                   <CardHeader>
                     <div className="flex justify-between items-start">
@@ -234,17 +234,17 @@ export default function ShowDetailsPage() {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                       <div>
                         <span className="font-medium">📅 Date:</span>
-                        <p className="text-gray-600">
+                        <p className="text-muted-foreground">
                           {formatDateUTC(performance.date)}
                         </p>
                       </div>
                       <div>
                         <span className="font-medium">🏛️ Venue:</span>
-                        <p className="text-gray-600">{performance.venue}</p>
+                        <p className="text-muted-foreground">{performance.venue}</p>
                       </div>
                       <div>
                         <span className="font-medium">💰 Price:</span>
-                        <p className="text-gray-600">${performance.price}</p>
+                        <p className="text-muted-foreground">${performance.price}</p>
                       </div>
                     </div>
                   </CardContent>
@@ -263,29 +263,29 @@ export default function ShowDetailsPage() {
             <form onSubmit={handleCreatePerformance} className="space-y-4">
               <div>
                 <Label htmlFor="perfName">Name</Label>
-                <Input id="perfName" value={newPerformance.name} onChange={e => setNewPerformance({ ...newPerformance, name: e.target.value })} required />
+                <Input id="perfName" value={newPerformance.name} onChange={(e) => setNewPerformance({ ...newPerformance, name: e.target.value })} required />
               </div>
               <div>
                 <Label htmlFor="perfDescription">Description</Label>
-                <Textarea id="perfDescription" value={newPerformance.description} onChange={e => setNewPerformance({ ...newPerformance, description: e.target.value })} required />
+                <Textarea id="perfDescription" value={newPerformance.description} onChange={(e) => setNewPerformance({ ...newPerformance, description: e.target.value })} required />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="perfDate">Date</Label>
-                  <Input id="perfDate" type="date" value={newPerformance.date} onChange={e => setNewPerformance({ ...newPerformance, date: e.target.value })} required />
+                  <Input id="perfDate" type="date" value={newPerformance.date} onChange={(e) => setNewPerformance({ ...newPerformance, date: e.target.value })} required />
                 </div>
                 <div>
                   <Label htmlFor="perfTime">Time</Label>
-                  <Input id="perfTime" type="time" value={newPerformance.time} onChange={e => setNewPerformance({ ...newPerformance, time: e.target.value })} required />
+                  <Input id="perfTime" type="time" value={newPerformance.time} onChange={(e) => setNewPerformance({ ...newPerformance, time: e.target.value })} required />
                 </div>
               </div>
               <div>
                 <Label htmlFor="perfVenue">Venue</Label>
-                <Input id="perfVenue" value={newPerformance.venue} onChange={e => setNewPerformance({ ...newPerformance, venue: e.target.value })} required />
+                <Input id="perfVenue" value={newPerformance.venue} onChange={(e) => setNewPerformance({ ...newPerformance, venue: e.target.value })} required />
               </div>
               <div>
                 <Label htmlFor="perfPrice">Price ($)</Label>
-                <Input id="perfPrice" type="number" step="0.01" value={newPerformance.price} onChange={e => setNewPerformance({ ...newPerformance, price: e.target.value })} required />
+                <Input id="perfPrice" type="number" step="0.01" value={newPerformance.price} onChange={(e) => setNewPerformance({ ...newPerformance, price: e.target.value })} required />
               </div>
               <div className="flex justify-end gap-2">
                 <Button type="button" variant="outline" onClick={() => setIsCreatePerformanceOpen(false)}>Cancel</Button>
@@ -303,11 +303,11 @@ export default function ShowDetailsPage() {
             <form onSubmit={handleUpdateShow} className="space-y-4">
               <div>
                 <Label htmlFor="showEditName">Name</Label>
-                <Input id="showEditName" value={editShow.name} onChange={e => setEditShow({ ...editShow, name: e.target.value })} required />
+                <Input id="showEditName" value={editShow.name} onChange={(e) => setEditShow({ ...editShow, name: e.target.value })} required />
               </div>
               <div>
                 <Label htmlFor="showEditDescription">Description</Label>
-                <Textarea id="showEditDescription" value={editShow.description} onChange={e => setEditShow({ ...editShow, description: e.target.value })} required />
+                <Textarea id="showEditDescription" value={editShow.description} onChange={(e) => setEditShow({ ...editShow, description: e.target.value })} required />
               </div>
               <div>
                 <Label htmlFor="editMainImageFile">Main Image</Label>
@@ -316,19 +316,19 @@ export default function ShowDetailsPage() {
                     <Image src={editShow.mainImage} alt="Main" fill sizes="(max-width: 768px) 176px, 176px" className="rounded border object-cover" />
                     <button
                       type="button"
-                      onClick={() => setEditShow(prev => ({ ...prev, mainImage: '' }))}
+                      onClick={() => setEditShow((prev) => ({ ...prev, mainImage: '' }))}
                       className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full h-6 w-6 text-sm hidden group-hover:flex items-center justify-center"
                       aria-label="Remove main image"
                     >×</button>
                   </div>
                 )}
                 <div className="flex items-center gap-2 mt-2">
-                  <Input id="editMainImageFile" type="file" accept="image/*" onChange={async e => {
+                  <Input id="editMainImageFile" type="file" accept="image/*" onChange={async (e) => {
                     if (!e.target.files?.length) return;
                     try {
                       setIsUploadingMain(true);
                       const [url] = await uploadFiles(e.target.files);
-                      setEditShow(prev => ({ ...prev, mainImage: url }));
+                      setEditShow((prev) => ({ ...prev, mainImage: url }));
                       toast.success('Main image uploaded');
                     } catch (err) {
                       const msg = err instanceof Error ? err.message : 'Failed to upload main image';
@@ -338,7 +338,7 @@ export default function ShowDetailsPage() {
                       e.currentTarget.value = '';
                     }
                   }} />
-                  {isUploadingMain && <span className="text-xs text-gray-500">Uploading...</span>}
+                  {isUploadingMain && <span className="text-xs text-muted-foreground">Uploading...</span>}
                 </div>
               </div>
               <div className="space-y-2">
@@ -347,14 +347,14 @@ export default function ShowDetailsPage() {
                   <Input
                     placeholder="Add image URL and press Add"
                     value={editShow.galleryInput}
-                    onChange={e => setEditShow({ ...editShow, galleryInput: e.target.value })}
+                    onChange={(e) => setEditShow({ ...editShow, galleryInput: e.target.value })}
                   />
                   <Button
                     type="button"
                     variant="outline"
                     onClick={() => {
                       if (!editShow.galleryInput.trim()) return;
-                      setEditShow(prev => ({
+                      setEditShow((prev) => ({
                         ...prev,
                         galleryImages: [...prev.galleryImages, prev.galleryInput.trim()],
                         galleryInput: ''
@@ -363,12 +363,12 @@ export default function ShowDetailsPage() {
                   >Add</Button>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Input id="editGalleryFiles" type="file" accept="image/*" multiple onChange={async e => {
+                  <Input id="editGalleryFiles" type="file" accept="image/*" multiple onChange={async (e) => {
                     if (!e.target.files?.length) return;
                     try {
                       setIsUploadingGallery(true);
                       const urls = await uploadFiles(e.target.files);
-                      setEditShow(prev => ({ ...prev, galleryImages: [...prev.galleryImages, ...urls] }));
+                      setEditShow((prev) => ({ ...prev, galleryImages: [...prev.galleryImages, ...urls] }));
                       toast.success('Gallery images uploaded');
                     } catch (err) {
                       const msg = err instanceof Error ? err.message : 'Failed to upload gallery images';
@@ -378,7 +378,7 @@ export default function ShowDetailsPage() {
                       e.currentTarget.value = '';
                     }
                   }} />
-                  {isUploadingGallery && <span className="text-xs text-gray-500">Uploading...</span>}
+                  {isUploadingGallery && <span className="text-xs text-muted-foreground">Uploading...</span>}
                 </div>
                 {editShow.galleryImages.length > 0 && (
                   <div className="flex flex-wrap gap-3 mt-2">
@@ -387,7 +387,7 @@ export default function ShowDetailsPage() {
                         <Image src={url} alt="Gallery" fill sizes="64px" className="object-cover rounded border" />
                         <button
                           type="button"
-                          onClick={() => setEditShow(prev => ({ ...prev, galleryImages: prev.galleryImages.filter((_, i) => i !== idx) }))}
+                          onClick={() => setEditShow((prev) => ({ ...prev, galleryImages: prev.galleryImages.filter((_, i) => i !== idx) }))}
                           className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full h-5 w-5 text-xs hidden group-hover:flex items-center justify-center"
                         >×</button>
                       </div>
@@ -400,37 +400,37 @@ export default function ShowDetailsPage() {
                 <Input
                   placeholder="Filter performances..."
                   value={editPerfFilter}
-                  onChange={e => setEditPerfFilter(e.target.value)}
+                  onChange={(e) => setEditPerfFilter(e.target.value)}
                 />
-                <div className="max-h-56 overflow-auto border rounded-md p-2 space-y-1 bg-white">
+                <div className="max-h-56 overflow-auto border rounded-md p-2 space-y-1 bg-card text-card-foreground">
                   {allPerformances
-                    .filter(p => p.name.toLowerCase().includes(editPerfFilter.toLowerCase()))
-                    .map(p => {
+                    .filter((p) => p.name.toLowerCase().includes(editPerfFilter.toLowerCase()))
+                    .map((p) => {
                       const checked = editShow.performanceIds.includes(p._id || '');
                       return (
-                        <label key={p._id} className="flex items-start gap-2 p-2 rounded hover:bg-gray-50 cursor-pointer text-sm">
+                        <label key={p._id} className="flex items-start gap-2 p-2 rounded hover:bg-muted cursor-pointer text-sm">
                           <input
                             type="checkbox"
                             className="mt-0.5"
                             checked={checked}
                             onChange={() => {
                               const id = p._id || '';
-                              setEditShow(prev => ({
+                              setEditShow((prev) => ({
                                 ...prev,
                                 performanceIds: checked
-                                  ? prev.performanceIds.filter(x => x !== id)
+                                  ? prev.performanceIds.filter((x) => x !== id)
                                   : [...prev.performanceIds, id]
                               }));
                             }}
                           />
                           <span className="flex-1">
                             <span className="font-medium">{p.name}</span>
-                            <span className="text-xs text-gray-500 ml-2">{formatDateUTC(p.date)}</span>
+                            <span className="text-xs text-muted-foreground ml-2">{formatDateUTC(p.date)}</span>
                           </span>
                         </label>
                       );
                     })}
-                  {allPerformances.filter(p => p.name.toLowerCase().includes(editPerfFilter.toLowerCase())).length === 0 && (
+                  {allPerformances.filter((p) => p.name.toLowerCase().includes(editPerfFilter.toLowerCase())).length === 0 && (
                     <div className="text-xs text-muted-foreground p-2">No performances match filter.</div>
                   )}
                 </div>

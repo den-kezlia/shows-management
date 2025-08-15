@@ -65,6 +65,14 @@
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
   }
+  /* Pointer cursor affordance for interactive elements */
+  a, button, [role="button"], .cursor-pointer {
+    cursor: pointer;
+  }
+  button:disabled,
+  [aria-disabled="true"] {
+    cursor: not-allowed;
+  }
 }
 
 /* Container utility: use mx-auto and px-* classes in markup as needed */

@@ -230,8 +230,8 @@ export default function PerformanceTickets() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
-          <p className="mt-2">Loading performance tickets...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-foreground mx-auto"></div>
+          <p className="mt-2 text-muted-foreground">Loading performance tickets...</p>
         </div>
       </div>
     );
@@ -547,17 +547,17 @@ export default function PerformanceTickets() {
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
                     <div>
                       <span className="font-medium">💺 Seat:</span>
-                      <p className="text-gray-600">
+                      <p className="text-muted-foreground">
                         Row {ticket.placeRow}, Seat {ticket.placeNumber}
                       </p>
                     </div>
                     <div>
                       <span className="font-medium">📧 Reference:</span>
-                      <p className="text-gray-600">{ticket.referenceName}</p>
+                      <p className="text-muted-foreground">{ticket.referenceName}</p>
                     </div>
                     <div>
                       <span className="font-medium">📅 Created:</span>
-                      <p className="text-gray-600">
+                      <p className="text-muted-foreground">
                         {ticket.createdAt ? new Date(ticket.createdAt).toLocaleDateString() : 'N/A'}
                       </p>
                     </div>

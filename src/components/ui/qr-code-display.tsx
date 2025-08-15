@@ -17,7 +17,7 @@ export function QRCodeDisplay({ qrCode, ticketId, customerName, performanceName 
 
   if (!qrCode) {
     return (
-      <span className="text-gray-400 text-xs">
+      <span className="text-muted-foreground text-xs">
         No QR Code
       </span>
     );
@@ -36,11 +36,11 @@ export function QRCodeDisplay({ qrCode, ticketId, customerName, performanceName 
           <DialogDescription>
             {performanceName && <div className="mb-1"><strong>Performance:</strong> {performanceName}</div>}
             {customerName && <div className="mb-1"><strong>Customer:</strong> {customerName}</div>}
-            {ticketId && <div className="text-xs text-gray-500">Ticket ID: {ticketId}</div>}
+            {ticketId && <div className="text-xs text-muted-foreground">Ticket ID: {ticketId}</div>}
           </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col items-center space-y-4">
-          <div className="bg-white p-4 rounded-lg border-2 border-gray-200">
+          <div className="bg-card text-card-foreground p-4 rounded-lg border-2 border-border">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img 
               src={qrCode} 
@@ -48,7 +48,7 @@ export function QRCodeDisplay({ qrCode, ticketId, customerName, performanceName 
               className="w-64 h-64 object-contain"
             />
           </div>
-          <div className="text-center text-sm text-gray-600">
+          <div className="text-center text-sm text-muted-foreground">
             <p>Scan this QR code at the venue entrance</p>
             <p>to validate the ticket</p>
           </div>
@@ -87,14 +87,14 @@ export function QRCodeDisplay({ qrCode, ticketId, customerName, performanceName 
 export function QRCodePreview({ qrCode }: { qrCode?: string }) {
   if (!qrCode) {
     return (
-      <div className="w-16 h-16 bg-gray-100 rounded border-2 border-dashed border-gray-300 flex items-center justify-center">
-        <span className="text-xs text-gray-400">No QR</span>
+      <div className="w-16 h-16 bg-muted rounded border-2 border-dashed border-border flex items-center justify-center">
+        <span className="text-xs text-muted-foreground">No QR</span>
       </div>
     );
   }
 
   return (
-    <div className="w-16 h-16 bg-white rounded border border-gray-200 overflow-hidden">
+    <div className="w-16 h-16 bg-card text-card-foreground rounded border border-border overflow-hidden">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img 
         src={qrCode} 

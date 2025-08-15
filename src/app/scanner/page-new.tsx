@@ -262,7 +262,7 @@ export default function QRScannerPage() {
                 <div className="text-center">
                   {!isScanning ? (
                     <div>
-                      <div className="bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg p-8 mb-4">
+                      <div className="bg-muted border-2 border-dashed border-border rounded-lg p-8 mb-4">
                         <p className="text-gray-500">
                           📷 Use your device camera to scan QR codes
                           <br />
@@ -403,7 +403,7 @@ export default function QRScannerPage() {
               <CardContent>
                 <div className="space-y-4">
                   {/* Performance Info */}
-                  <div className="bg-white p-4 rounded-lg">
+                  <div className="bg-card text-card-foreground p-4 rounded-lg">
                     <h3 className="font-semibold text-lg mb-2">
                       {validationResult.performance.name}
                     </h3>
@@ -417,7 +417,7 @@ export default function QRScannerPage() {
                   </div>
 
                   {/* Ticket Info */}
-                  <div className="bg-white p-4 rounded-lg">
+                  <div className="bg-card text-card-foreground p-4 rounded-lg">
                     <h4 className="font-medium mb-2">Ticket Details</h4>
                     <div className="grid grid-cols-2 gap-2 text-sm">
                       <div>

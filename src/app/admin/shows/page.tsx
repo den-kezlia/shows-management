@@ -98,7 +98,7 @@ export default function ShowsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+  <div className="min-h-screen bg-background">
       <AdminNav adminUser={adminUser} onLogout={() => { localStorage.clear(); router.push('/admin'); }} />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex justify-between items-center mb-8">
@@ -150,7 +150,7 @@ export default function ShowsPage() {
                         e.currentTarget.value = '';
                       }
                     }} />
-                    {isUploadingMain && <span className="text-xs text-gray-500">Uploading...</span>}
+                    {isUploadingMain && <span className="text-xs text-muted-foreground">Uploading...</span>}
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -190,7 +190,7 @@ export default function ShowsPage() {
                         e.currentTarget.value = '';
                       }
                     }} />
-                    {isUploadingGallery && <span className="text-xs text-gray-500">Uploading...</span>}
+                    {isUploadingGallery && <span className="text-xs text-muted-foreground">Uploading...</span>}
                   </div>
                   {newShow.galleryImages.length > 0 && (
                     <div className="flex flex-wrap gap-3 mt-2">
@@ -215,7 +215,7 @@ export default function ShowsPage() {
                       value={perfFilter}
                       onChange={e => setPerfFilter(e.target.value)}
                     />
-                    <div className="max-h-48 overflow-auto border rounded-md p-2 space-y-1 bg-white">
+                    <div className="max-h-48 overflow-auto border rounded-md p-2 space-y-1 bg-card text-card-foreground">
                       {performances
                         .filter(p => p.name.toLowerCase().includes(perfFilter.toLowerCase()))
                         .map(p => {
@@ -223,7 +223,7 @@ export default function ShowsPage() {
                           return (
                             <label
                               key={p._id}
-                              className="flex items-start gap-2 p-2 rounded hover:bg-gray-50 cursor-pointer text-sm"
+                              className="flex items-start gap-2 p-2 rounded hover:bg-muted cursor-pointer text-sm"
                             >
                               <input
                                 type="checkbox"
@@ -241,7 +241,7 @@ export default function ShowsPage() {
                               />
                               <span className="flex-1">
                                 <span className="font-medium">{p.name}</span>
-                                <span className="text-xs text-gray-500 ml-2">{formatDateUTC(p.date)}</span>
+                                <span className="text-xs text-muted-foreground ml-2">{formatDateUTC(p.date)}</span>
                               </span>
                             </label>
                           );
@@ -277,7 +277,7 @@ export default function ShowsPage() {
             {shows.map(show => (
               <Card key={show._id} className="hover:shadow overflow-hidden">
                 {show.mainImage && (
-                  <div className="h-40 w-full overflow-hidden border-b bg-gray-100 relative">
+                  <div className="h-40 w-full overflow-hidden border-b bg-muted relative">
                     <Image src={show.mainImage} alt={show.name} fill sizes="100vw" className="object-cover" />
                   </div>
                 )}

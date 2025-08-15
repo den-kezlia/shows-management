@@ -1,0 +1,70 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("POSTGRES_URL")
+}
+
+enum TicketStatus {
+  pending
+  paid
+  approved
+}
+
+model Show {
+  id            String        @id @default(cuid())
+  name          String
+  description   String
+  mainImage     String?
+  galleryImages String[]
+  performances  Performance[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model Performance {
+  id          String     @id @default(cuid())
+  name        String
+  description String
+  photo       String?
+  date        DateTime
+  venue       String?
+  price       Float?
+  showId      String?
+  show        Show?      @relation(fields: [showId], references: [id])
+  tickets     Ticket[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  @@index([showId])
+}
+
+model Ticket {
+  id                  String       @id @default(cuid())
+  performanceId       String
+  performance         Performance  @relation(fields: [performanceId], references: [id])
+  placeRow            String
+  placeNumber         String
+  customerPhoneNumber String
+  customerName        String
+  referenceName       String?
+  qrCode              String?
+  status              TicketStatus @default(pending)
+  isVisited           Boolean      @default(false)
+  visitedAt           DateTime?
+  approvedAt          DateTime?
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+  @@index([performanceId])
+  @@unique([performanceId, placeRow, placeNumber])
+}
+
+model Admin {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

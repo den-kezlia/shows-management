@@ -81,7 +81,7 @@ export function AdminNav({ adminUser, onLogout }: AdminNavProps) {
   );
 }
 
-export function PublicNav() {
+export function PublicNav({ showScannerLink = true }: { showScannerLink?: boolean }) {
   return (
   <header className="bg-background border-b border-border sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -91,12 +91,14 @@ export function PublicNav() {
           </Link>
           
           <div className="flex items-center gap-2">
-            <Link href="/scanner">
-              <Button variant="outline" size="sm">
-                📱 Scanner
-              </Button>
-            </Link>
-            <Link href="/admin">
+            {showScannerLink && (
+              <Link href="/scanner">
+                <Button variant="outline" size="sm">
+                  📱 Scanner
+                </Button>
+              </Link>
+            )}
+            <Link href="/">
               <Button size="sm">
                 Admin
               </Button>

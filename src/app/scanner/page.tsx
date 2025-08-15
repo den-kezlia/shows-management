@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +14,7 @@ import { TicketValidation } from "@/types";
 import { toast } from "sonner";
 
 export default function QRScannerPage() {
+  const router = useRouter();
   const [ticketId, setTicketId] = useState("");
   const [validationResult, setValidationResult] = useState<TicketValidation | null>(null);
   const [error, setError] = useState("");
@@ -132,6 +134,22 @@ export default function QRScannerPage() {
       setError("Failed to process QR code");
     }
   };
+
+  // Protect route: only logged-in users
+  useEffect(() => {
+    const token = localStorage.getItem("adminToken");
+    if (!token) {
+      router.replace("/");
+      return;
+    }
+    // verify token (non-blocking)
+    fetch("/api/auth/verify", { headers: { Authorization: `Bearer ${token}` } })
+      .then((r) => r.json())
+      .then((res) => {
+        if (!res?.success) router.replace("/");
+      })
+      .catch(() => router.replace("/"));
+  }, [router]);
 
   // Clean up scanner on component unmount
   useEffect(() => {

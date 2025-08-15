@@ -15,8 +15,11 @@ import { Separator } from "@/components/ui/separator";
 import { QRCodeDisplay, QRCodePreview } from "@/components/ui/qr-code-display";
 import { Performance, Ticket } from "@/types";
 import { Trash2, Edit } from "lucide-react";
+import { AdminNav } from "@/components/ui/navigation";
+import { useProtectedRoute } from "@/lib/useAuth";
 
 export default function PerformanceTickets() {
+  const { adminUser, isLoading: authLoading, isAuthenticated, logout } = useProtectedRoute();
   const [performance, setPerformance] = useState<Performance | null>(null);
   const [allPerformances, setAllPerformances] = useState<Performance[]>([]);
   const [tickets, setTickets] = useState<Ticket[]>([]);
@@ -87,16 +90,10 @@ export default function PerformanceTickets() {
   }, [performanceId]);
 
   useEffect(() => {
-    // Check if user is authenticated
-    const token = localStorage.getItem("adminToken");
-    if (!token) {
-      router.push("/admin");
-      return;
-    }
-    if (performanceId) {
+    if (isAuthenticated && performanceId) {
       loadPerformanceAndTickets();
     }
-  }, [router, performanceId, loadPerformanceAndTickets]);
+  }, [isAuthenticated, performanceId, loadPerformanceAndTickets]);
 
   const handleCreateTicket = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -226,7 +223,7 @@ export default function PerformanceTickets() {
     }
   };
 
-  if (isLoading) {
+  if (authLoading || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -263,141 +260,129 @@ export default function PerformanceTickets() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-4">
-              <Link href="/admin/performances">
-                <Button variant="ghost" size="sm">
-                  ← Back to Performances
-                </Button>
-              </Link>
-              <div>
-                <h1 className="text-xl font-semibold">
-                  🎫 {performance.name}
-                </h1>
-                <p className="text-sm text-muted-foreground">
-                  {new Date(performance.date).toLocaleDateString()} • {performance.venue}
-                </p>
-              </div>
-            </div>
-            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-              <Button onClick={() => setIsCreateDialogOpen(true)}>
-                Create Ticket
-              </Button>
-              <DialogContent className="sm:max-w-md">
-                <DialogHeader>
-                  <DialogTitle>Create Ticket</DialogTitle>
-                  <DialogDescription>
-                    Create a new ticket for {performance?.name}
-                  </DialogDescription>
-                </DialogHeader>
-                <form onSubmit={handleCreateTicket} className="space-y-4">
-                  <div>
-                    <Label htmlFor="performanceId">Performance</Label>
-                    <Select 
-                      value={newTicket.performanceId} 
-                      onValueChange={(value) => setNewTicket({...newTicket, performanceId: value})}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a performance" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {allPerformances.map((perf) => (
-                          <SelectItem key={perf._id} value={perf._id || ""}>
-                            {perf.name} - {new Date(perf.date).toLocaleDateString()}
-                            {perf._id === performanceId && " (Current)"}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="placeRow">Row</Label>
-                      <Input
-                        id="placeRow"
-                        value={newTicket.placeRow}
-                        onChange={(e) => setNewTicket({...newTicket, placeRow: e.target.value})}
-                        placeholder="e.g., A or 1"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="placeNumber">Seat</Label>
-                      <Input
-                        id="placeNumber"
-                        value={newTicket.placeNumber}
-                        onChange={(e) => setNewTicket({...newTicket, placeNumber: e.target.value})}
-                        placeholder="e.g., 15"
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <Label htmlFor="customerName">Customer Name</Label>
-                    <Input
-                      id="customerName"
-                      value={newTicket.customerName}
-                      onChange={(e) => setNewTicket({...newTicket, customerName: e.target.value})}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="customerPhoneNumber">Phone Number</Label>
-                    <Input
-                      id="customerPhoneNumber"
-                      value={newTicket.customerPhoneNumber}
-                      onChange={(e) => setNewTicket({...newTicket, customerPhoneNumber: e.target.value})}
-                      placeholder="+1234567890"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="referenceName">Reference Name (Optional)</Label>
-                    <Input
-                      id="referenceName"
-                      value={newTicket.referenceName}
-                      onChange={(e) => setNewTicket({...newTicket, referenceName: e.target.value})}
-                      placeholder="Enter reference name"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="status">Status</Label>
-                    <Select
-                      value={newTicket.status}
-                      onValueChange={(value) => setNewTicket({ ...newTicket, status: value as 'pending' | 'paid' | 'approved' })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="pending">⏳ Pending</SelectItem>
-                        <SelectItem value="paid">💳 Paid</SelectItem>
-                        <SelectItem value="approved">✅ Approved</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="flex justify-end gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setIsCreateDialogOpen(false)}
-                    >
-                      Cancel
-                    </Button>
-                    <Button type="submit">
-                      Create Ticket
-                    </Button>
-                  </div>
-                </form>
-              </DialogContent>
-            </Dialog>
-          </div>
-        </div>
-      </header>
-
+      <AdminNav adminUser={adminUser as any} onLogout={logout} />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex items-center gap-4">
+            <Link href="/admin/performances">
+              <Button variant="ghost" size="sm">← Back to Performances</Button>
+            </Link>
+            <div>
+              <h1 className="text-xl font-semibold">🎫 {performance.name}</h1>
+              <p className="text-sm text-muted-foreground">
+                {new Date(performance.date).toLocaleDateString()} • {performance.venue}
+              </p>
+            </div>
+          </div>
+          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+            <Button onClick={() => setIsCreateDialogOpen(true)}>Create Ticket</Button>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Create Ticket</DialogTitle>
+                <DialogDescription>
+                  Create a new ticket for {performance?.name}
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleCreateTicket} className="space-y-4">
+                <div>
+                  <Label htmlFor="performanceId">Performance</Label>
+                  <Select 
+                    value={newTicket.performanceId} 
+                    onValueChange={(value) => setNewTicket({...newTicket, performanceId: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a performance" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {allPerformances.map((perf) => (
+                        <SelectItem key={perf._id} value={perf._id || ""}>
+                          {perf.name} - {new Date(perf.date).toLocaleDateString()}
+                          {perf._id === performanceId && " (Current)"}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="placeRow">Row</Label>
+                    <Input
+                      id="placeRow"
+                      value={newTicket.placeRow}
+                      onChange={(e) => setNewTicket({...newTicket, placeRow: e.target.value})}
+                      placeholder="e.g., A or 1"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="placeNumber">Seat</Label>
+                    <Input
+                      id="placeNumber"
+                      value={newTicket.placeNumber}
+                      onChange={(e) => setNewTicket({...newTicket, placeNumber: e.target.value})}
+                      placeholder="e.g., 15"
+                      required
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="customerName">Customer Name</Label>
+                  <Input
+                    id="customerName"
+                    value={newTicket.customerName}
+                    onChange={(e) => setNewTicket({...newTicket, customerName: e.target.value})}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="customerPhoneNumber">Phone Number</Label>
+                  <Input
+                    id="customerPhoneNumber"
+                    value={newTicket.customerPhoneNumber}
+                    onChange={(e) => setNewTicket({...newTicket, customerPhoneNumber: e.target.value})}
+                    placeholder="+1234567890"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="referenceName">Reference Name (Optional)</Label>
+                  <Input
+                    id="referenceName"
+                    value={newTicket.referenceName}
+                    onChange={(e) => setNewTicket({...newTicket, referenceName: e.target.value})}
+                    placeholder="Enter reference name"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="status">Status</Label>
+                  <Select
+                    value={newTicket.status}
+                    onValueChange={(value) => setNewTicket({ ...newTicket, status: value as 'pending' | 'paid' | 'approved' })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pending">⏳ Pending</SelectItem>
+                      <SelectItem value="paid">💳 Paid</SelectItem>
+                      <SelectItem value="approved">✅ Approved</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex justify-end gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsCreateDialogOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit">Create Ticket</Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
         {/* Performance Info Card */}
         <Card className="mb-8">
           <CardHeader>
